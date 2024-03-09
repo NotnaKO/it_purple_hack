@@ -1,8 +1,10 @@
-package main
+package price_retrival
 
 import (
 	"fmt"
 )
+
+var IDToLocationNodeMap = map[uint64]*LocationNode{}
 
 func GetLocationsTree() *LocationNode {
 	// Создаем корневую локацию - Все регионы
@@ -21,45 +23,44 @@ func GetLocationsTree() *LocationNode {
 	return allRegions
 }
 
-var locationID int64
+var locationID uint64
 
 // LocationNode представляет собой узел дерева локаций
 type LocationNode struct {
-	ID       int64
-	Name     string
-	Children []*LocationNode
+	ID     uint64
+	Name   string
+	Parent *LocationNode
 }
 
 // NewLocation Создает новый узел локации
+// Придерживается контракта, что такого узла не было
 func NewLocation(name string) *LocationNode {
 	locationID++
-	return &LocationNode{
-		ID:       locationID,
-		Name:     name,
-		Children: []*LocationNode{},
+	ptr := &LocationNode{
+		ID:   locationID,
+		Name: name,
 	}
+	IDToLocationNodeMap[ptr.ID] = ptr
+	return ptr
 }
 
 // AddChild Добавляет дочернюю локацию к родительской локации
 func (l *LocationNode) AddChild(child *LocationNode) {
-	l.Children = append(l.Children, child)
+	child.Parent = l
 }
 
-// PrintTree Рекурсивно выводит дерево локаций
-func (l *LocationNode) PrintTree(indent int) {
-	fmt.Printf("%s%d - %s\n", generateLocationIndent(indent), l.ID, l.Name)
-	for _, child := range l.Children {
-		child.PrintTree(indent + 2)
+// PrintLocationTree Выводит дерево локаций;
+// предполагается, что не используется часто
+func PrintLocationTree() {
+	for ID, ptr := range IDToLocationNodeMap {
+		var curChildID []uint64
+		for _, child := range IDToLocationNodeMap {
+			if child.Parent == ptr {
+				curChildID = append(curChildID, child.ID)
+			}
+		}
+		fmt.Printf("Node's %d name %s,  children: %v\n", ID, ptr.Name, curChildID)
 	}
-}
-
-// Генерирует отступ для вывода
-func generateLocationIndent(indent int) string {
-	result := ""
-	for i := 0; i < indent; i++ {
-		result += " "
-	}
-	return result
 }
 
 var rawLocations = map[string][]string{
