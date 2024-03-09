@@ -1,4 +1,4 @@
-package price_retrival
+package main
 
 import (
 	"errors"

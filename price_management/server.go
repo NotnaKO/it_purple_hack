@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -107,11 +106,6 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
-	if len(os.Args) != 5 {
-		fmt.Println("Usage: ./main user password host dbname")
-		return nil, errors.New("invalid usage")
-	}
-
 	user := os.Args[1]
 	password := os.Args[2]
 	host := os.Args[3]
