@@ -132,7 +132,12 @@ func main() {
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
 
-	port := os.Args[1]
-	fmt.Printf("Price Management Service is listening on port %s...\n", port)
-	http.ListenAndServe(":"+port, nil)
+	// TODO kubernetes. right now leave only one port
+	go func() {
+		port := os.Args[1]
+		fmt.Printf("Price Management Service is listening on port %s...\n", port)
+		http.ListenAndServe(":"+port, nil)
+	}()
+
+	select {}
 }

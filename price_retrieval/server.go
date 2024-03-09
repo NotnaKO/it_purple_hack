@@ -94,9 +94,14 @@ func main() {
 
 	handler := NewHandler()
 
+	// TODO async handler
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
-	port := os.Args[1]
-	fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	go func() {
+		port := os.Args[1]
+		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
+		log.Fatal(http.ListenAndServe(":"+port, nil))
+	}()
+
+	select {}
 }

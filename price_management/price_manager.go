@@ -2,6 +2,7 @@ package main
 
 import "database/sql"
 
+// TODO create hot table
 type PriceManager struct {
 	db *sql.DB
 }
@@ -21,6 +22,7 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 
 // GetPrice возвращает цену для указанных местоположения и микрокатегории
 func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (float64, error) {
+	// TODO get by batch
 	var price float64
 	err := p.db.QueryRow("SELECT price FROM price_matrix WHERE location_id=$1 AND microcategory_id=$2",
 		request.LocationID, request.MicrocategoryID).Scan(&price)
