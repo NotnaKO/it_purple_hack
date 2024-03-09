@@ -142,7 +142,6 @@ func main() {
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
 
-<<<<<<< HEAD
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := os.Args[1]
@@ -151,11 +150,4 @@ func main() {
 	}()
 
 	select {}
-=======
-	logger.Info("Price Management Service is running...")
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		logger.Fatal(err)
-	}
->>>>>>> 7d018f5 (Rewrite trees)
 }

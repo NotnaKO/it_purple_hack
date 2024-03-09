@@ -7,6 +7,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 )
 
+<<<<<<< HEAD
 require (
 <<<<<<< HEAD
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -19,3 +20,6 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 >>>>>>> 46c8d59 (Rewrite trees)
 )
+=======
+require golang.org/x/sys v0.18.0 // indirect
+>>>>>>> 1866b70 (add stress tests & async server)
