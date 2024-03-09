@@ -47,6 +47,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 }
 
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (uint64, error) {
+	// TODO FIX !!!!!!!
 	resp, err := http.Get(
 		fmt.Sprintf("http://localhost:8080/get_price?location_id=%d&microcategory_id=%d",
 			request.location.ID, request.category.ID))
