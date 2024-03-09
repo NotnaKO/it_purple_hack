@@ -42,7 +42,7 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 	price, err := retriever.Search(&info)
 	if err != nil {
 		h.logServerError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -94,7 +94,6 @@ func main() {
 
 	handler := NewHandler()
 
-	// TODO async handler
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
 	go func() {

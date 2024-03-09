@@ -22,6 +22,10 @@ type searchRequest struct {
 func (r *Retriever) Search(info *ConnectionInfo) (uint64, error) {
 	location := IDToLocationNodeMap[info.LocationID]
 	category := IDToCategoryNodeMap[info.MicrocategoryID]
+	if location == nil || category == nil {
+		return 0, NoSuchCategoryAndLocation
+	}
+
 	request := searchRequest{
 		location: location,
 		category: category,
@@ -56,11 +60,7 @@ func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (u
 		if err != nil {
 			return 0, err
 		}
-		search, err := r.search(nextRequest, firstRequest)
-		if err != nil {
-			return 0, err
-		}
-		return search, nil
+		return r.search(nextRequest, firstRequest)
 	}
 	if err != nil {
 		return 0, err

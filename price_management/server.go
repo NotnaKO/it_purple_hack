@@ -37,7 +37,7 @@ func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 	price, err := h.priceManager.GetPrice(&getRequest)
 	if err != nil {
 		h.logServerError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		h.logServerError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -64,19 +64,21 @@ func (h *Handler) SetPrice(w http.ResponseWriter, r *http.Request) {
 	set_request, err := NewSetRequest(r)
 	if err != nil {
 		h.logRequestError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = h.priceManager.SetPrice(&set_request)
 	if err != nil {
 		h.logServerError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
+	// Log request details
 	h.logRequest(r, startTime)
 }
 
@@ -106,10 +108,10 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
-	user := os.Args[1]
-	password := os.Args[2]
-	host := os.Args[3]
-	dbname := os.Args[4]
+	user := os.Args[2]
+	password := os.Args[3]
+	host := os.Args[4]
+	dbname := os.Args[5]
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 

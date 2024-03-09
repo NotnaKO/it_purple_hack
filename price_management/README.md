@@ -27,7 +27,7 @@ CREATE DATABASE price_management;
 CREATE TABLE price_matrix (
     location_id BIGINT NOT NULL,
     microcategory_id BIGINT NOT NULL,
-    price DOUBLE PRECISION NOT NULL,
+    price BIGINT NOT NULL,
     PRIMARY KEY (location_id, microcategory_id)
 );
 ```
