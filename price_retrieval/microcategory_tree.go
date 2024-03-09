@@ -1,8 +1,8 @@
-package main
+package price_retrival
 
-import (
-	"fmt"
-)
+import "fmt"
+
+var IDToCategoryNodeMap = map[uint64]*CategoryNode{}
 
 func GetCategoriesTree() *CategoryNode {
 	// Создаем корневую категорию - ROOT
@@ -22,45 +22,40 @@ func GetCategoriesTree() *CategoryNode {
 	return rootNode
 }
 
-var categoryID int64
+var categoryID uint64
 
 // CategoryNode представляет собой узел дерева локаций
 type CategoryNode struct {
-	ID       int64
-	Name     string
-	Children []*CategoryNode
+	ID     uint64
+	Name   string
+	Parent *CategoryNode
 }
 
 // NewCategory Создает новый узел локации
 func NewCategory(name string) *CategoryNode {
 	categoryID++
-	return &CategoryNode{
-		ID:       categoryID,
-		Name:     name,
-		Children: []*CategoryNode{},
+	ptr := &CategoryNode{
+		ID: categoryID, Name: name,
 	}
+	IDToCategoryNodeMap[ptr.ID] = ptr
+	return ptr
 }
 
 // AddChild Добавляет дочернюю локацию к родительской категории
 func (l *CategoryNode) AddChild(child *CategoryNode) {
-	l.Children = append(l.Children, child)
+	child.Parent = l
 }
 
-// PrintTree Рекурсивно выводит дерево категорий
-func (l *CategoryNode) PrintTree(indent int) {
-	fmt.Printf("%s%d - %s\n", generateCategoryIndent(indent), l.ID, l.Name)
-	for _, child := range l.Children {
-		child.PrintTree(indent + 2)
+func PrintCategoryTree() {
+	for ID, ptr := range IDToCategoryNodeMap {
+		var curChildID []uint64
+		for _, child := range IDToCategoryNodeMap {
+			if child.Parent == ptr {
+				curChildID = append(curChildID, child.ID)
+			}
+		}
+		fmt.Printf("Node's %d name %s,  children: %v\n", ID, ptr.Name, curChildID)
 	}
-}
-
-// Генерирует отступ для вывода
-func generateCategoryIndent(indent int) string {
-	result := ""
-	for i := 0; i < indent; i++ {
-		result += " "
-	}
-	return result
 }
 
 var rawCategories = map[string][]string{

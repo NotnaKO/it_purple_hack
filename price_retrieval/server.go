@@ -1,4 +1,4 @@
-package main
+package price_retrival
 
 import (
 	"encoding/json"
@@ -50,7 +50,7 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 	response := struct {
 		Price float64 `json:"price"`
 	}{
-		Price: price,
+		Price: float64(price) / 100,
 	}
 
 	// Отправляем ответ
@@ -86,7 +86,7 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 	}).Error("Internal Server Error")
 }
 
-func main() {
+func ServerMain() {
 	handler := NewHandler()
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
