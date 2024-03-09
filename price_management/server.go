@@ -27,14 +27,14 @@ func NewHandler(priceManager *PriceManager, logger *logrus.Logger) *Handler {
 func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
-	get_request, err := NewGetRequest(r)
+	getRequest, err := NewGetRequest(r)
 	if err != nil {
 		h.logRequestError(r, err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	price, err := h.priceManager.GetPrice(&get_request)
+	price, err := h.priceManager.GetPrice(&getRequest)
 	if err != nil {
 		h.logServerError(r, err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -42,13 +42,18 @@ func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Price float64 `json:"price"`
+		Price uint64 `json:"price"`
 	}{
 		Price: price,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 	h.logRequest(r, startTime)
 }
@@ -124,7 +129,12 @@ func main() {
 		logger.Fatal(err)
 		return
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}(db)
 
 	priceManager := NewPriceManagementService(db)
 	handler := NewHandler(priceManager, logger)
@@ -132,6 +142,7 @@ func main() {
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
 
+<<<<<<< HEAD
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := os.Args[1]
@@ -140,4 +151,11 @@ func main() {
 	}()
 
 	select {}
+=======
+	logger.Info("Price Management Service is running...")
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		logger.Fatal(err)
+	}
+>>>>>>> 7d018f5 (Rewrite trees)
 }
