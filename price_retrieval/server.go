@@ -91,7 +91,7 @@ func ServerMain() {
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
-	// Запускаем HTTP сервер на порту 8080
-	fmt.Println("Price Retrieval Service is listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Args[1]
+	fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

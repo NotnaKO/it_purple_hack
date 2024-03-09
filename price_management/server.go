@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -120,6 +119,11 @@ func ConnectToDatabase() (*sql.DB, error) {
 }
 
 func main() {
+	if len(os.Args) != 6 {
+		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname]")
+		return
+	}
+
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
@@ -128,6 +132,7 @@ func main() {
 	db, err := ConnectToDatabase()
 	if err != nil {
 		logger.Fatal(err)
+		return
 	}
 	defer func(db *sql.DB) {
 		err := db.Close()
