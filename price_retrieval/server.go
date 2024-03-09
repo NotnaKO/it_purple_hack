@@ -87,11 +87,16 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: ./price_retrieval [server_port]")
+		return
+	}
+
 	handler := NewHandler()
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
-	// Запускаем HTTP сервер на порту 8080
-	fmt.Println("Price Retrieval Service is listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Args[1]
+	fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
