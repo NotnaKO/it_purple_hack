@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -106,10 +107,15 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
-	user := os.Args[2]
-	password := os.Args[3]
-	host := os.Args[4]
-	dbname := os.Args[5]
+	if len(os.Args) != 5 {
+		fmt.Println("Usage: ./main user password host dbname")
+		return nil, errors.New("invalid usage")
+	}
+
+	user := os.Args[1]
+	password := os.Args[2]
+	host := os.Args[3]
+	dbname := os.Args[4]
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 

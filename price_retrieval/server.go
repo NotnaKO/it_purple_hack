@@ -1,4 +1,4 @@
-package main
+package price_retrival
 
 import (
 	"encoding/json"
@@ -86,12 +86,7 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 	}).Error("Internal Server Error")
 }
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: ./price_retrieval [server_port]")
-		return
-	}
-
+func ServerMain() {
 	handler := NewHandler()
 
 	// TODO async handler
