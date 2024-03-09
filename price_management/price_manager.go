@@ -20,8 +20,8 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 }
 
 // GetPrice возвращает цену для указанных местоположения и микрокатегории
-func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (float64, error) {
-	var price float64
+func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
+	var price uint64
 	err := p.db.QueryRow("SELECT price FROM price_matrix WHERE location_id=$1 AND microcategory_id=$2",
 		request.LocationID, request.MicrocategoryID).Scan(&price)
 	if err != nil {
