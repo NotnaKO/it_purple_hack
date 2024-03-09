@@ -19,3 +19,6 @@
 
 # Go workspace file
 go.work
+
+price_management/price_management
+price_retrieval/price_retrieval

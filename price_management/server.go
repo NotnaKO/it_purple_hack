@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -102,19 +101,19 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
-	if len(os.Args) != 5 {
-		fmt.Println("Usage: ./main user password host dbname")
-		return nil, errors.New("Invalid usage")
-	}
-
-	user := os.Args[1]
-	password := os.Args[2]
-	host := os.Args[3]
-	dbname := os.Args[4]
+	user := os.Args[2]
+	password := os.Args[3]
+	host := os.Args[4]
+	dbname := os.Args[5]
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 
 func main() {
+	if len(os.Args) != 6 {
+		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname]")
+		return
+	}
+
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
@@ -123,6 +122,7 @@ func main() {
 	db, err := ConnectToDatabase()
 	if err != nil {
 		logger.Fatal(err)
+		return
 	}
 	defer db.Close()
 
@@ -132,6 +132,7 @@ func main() {
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
 
-	logger.Info("Price Management Service is running...")
-	http.ListenAndServe(":8080", nil)
+	port := os.Args[1]
+	fmt.Printf("Price Management Service is listening on port %s...\n", port)
+	http.ListenAndServe(":"+port, nil)
 }
