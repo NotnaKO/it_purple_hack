@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <title>Analytics and Metrics</title>
     <style>
@@ -44,11 +44,11 @@
     <div class="container">
         <div class="column">
             <h2>Analytics</h2>
-            <input id="baselineInput" class="input" type="text" placeholder="Enter baseline value">
+            <input id="baselineInput" class="input" type="text" placeholder="Baseline matrix name">
             <div id="discountInputs">
                 <div class="input-row">
-                    <input type="text" placeholder="Enter discount_segment_id">
-                    <input type="text" placeholder="Enter value for discount_segment_id">
+                    <input type="text" placeholder="Segment id">
+                    <input type="text" placeholder="Discount matrix name">
                     <button onclick="removeInput(this)">-</button>
                 </div>
             </div>
@@ -109,8 +109,8 @@
             const newInputRow = document.createElement('div');
             newInputRow.classList.add('input-row');
             newInputRow.innerHTML = `
-                <input type="text" placeholder="Enter discount_segment_id">
-                <input type="text" placeholder="Enter value for discount_segment_id">
+                <input type="text" placeholder="Segment id">
+                <input type="text" placeholder="Discount matrix name">
                 <button onclick="removeInput(this)">-</button>
             `;
 
