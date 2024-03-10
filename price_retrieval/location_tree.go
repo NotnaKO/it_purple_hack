@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 )
 
 var IDToLocationNodeMap = map[uint64]*LocationNode{}
-var locationID uint64
+var LocationID uint64
 
 // LocationNode представляет собой узел дерева локаций
 type LocationNode struct {
@@ -19,9 +20,9 @@ type LocationNode struct {
 // NewLocation Создает новый узел локации
 // Придерживается контракта, что такого узла не было
 func NewLocation(name string) *LocationNode {
-	locationID++
+	LocationID++
 	ptr := &LocationNode{
-		ID:   locationID,
+		ID:   LocationID,
 		Name: name,
 	}
 	IDToLocationNodeMap[ptr.ID] = ptr
@@ -80,7 +81,8 @@ func getLocationNode(name string, locationNodeMap map[string]*LocationNode) *Loc
 
 // PrintLocationTree Выводит дерево локаций;
 // предполагается, что не используется часто
-func PrintLocationTree() {
+func ShowLocationTree(printNeed bool) []string {
+	var answer []string
 	for ID, ptr := range IDToLocationNodeMap {
 		var curChildID []uint64
 		for _, child := range IDToLocationNodeMap {
@@ -88,6 +90,14 @@ func PrintLocationTree() {
 				curChildID = append(curChildID, child.ID)
 			}
 		}
-		fmt.Printf("Node's %d name %s,  children: %v\n", ID, ptr.Name, curChildID)
+		slices.Sort(curChildID)
+		answer = append(answer, fmt.Sprintf("Node's %d name %s,  children: %v", ID, ptr.Name, curChildID))
 	}
+	slices.Sort(answer)
+	if printNeed {
+		for _, s := range answer {
+			fmt.Println(s)
+		}
+	}
+	return answer
 }

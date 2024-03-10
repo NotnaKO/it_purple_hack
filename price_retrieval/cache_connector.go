@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 )
 
@@ -26,7 +28,12 @@ func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID uint64) (ui
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return 0, errors.New("request failed with status: " + resp.Status)

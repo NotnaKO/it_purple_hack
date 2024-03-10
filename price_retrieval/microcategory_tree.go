@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
+	"slices"
 )
 
 var IDToCategoryNodeMap = map[uint64]*CategoryNode{}
-var categoryID uint64
+var CategoryID uint64
 
 // CategoryNode представляет собой узел дерева локаций
 type CategoryNode struct {
@@ -18,9 +20,9 @@ type CategoryNode struct {
 
 // NewCategory Создает новый узел локации
 func NewCategory(name string) *CategoryNode {
-	categoryID++
+	CategoryID++
 	ptr := &CategoryNode{
-		ID: categoryID, Name: name,
+		ID: CategoryID, Name: name,
 	}
 	IDToCategoryNodeMap[ptr.ID] = ptr
 	return ptr
@@ -41,7 +43,12 @@ func BuildCategoryTreeFromFile(filename string) (*CategoryNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(file)
 
 	var categories []JSONCategory
 	if err := json.NewDecoder(file).Decode(&categories); err != nil {
@@ -76,7 +83,8 @@ func getCategoryNode(name string, categoryNodeMap map[string]*CategoryNode) *Cat
 	return node
 }
 
-func PrintCategoryTree() {
+func ShowCategoryTree(printNeed bool) []string {
+	var answer []string
 	for ID, ptr := range IDToCategoryNodeMap {
 		var curChildID []uint64
 		for _, child := range IDToCategoryNodeMap {
@@ -84,6 +92,14 @@ func PrintCategoryTree() {
 				curChildID = append(curChildID, child.ID)
 			}
 		}
-		fmt.Printf("Node's %d name %s,  children: %v\n", ID, ptr.Name, curChildID)
+		slices.Sort(curChildID)
+		answer = append(answer, fmt.Sprintf("Node's %d name %s,  children: %v", ID, ptr.Name, curChildID))
 	}
+	slices.Sort(answer)
+	if printNeed {
+		for _, s := range answer {
+			fmt.Println(s)
+		}
+	}
+	return answer
 }
