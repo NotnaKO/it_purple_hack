@@ -25,8 +25,11 @@ func NewHandler() *Handler {
 	logger.SetLevel(logrus.InfoLevel) // Set log level to info
 
 	return &Handler{
-		logger:    logger,
-		connector: NewPriceManagerConnector(config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort))),
+		logger: logger,
+		connector: NewPriceManagerConnector(
+			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
+			"localhost:6379", "", 0,
+		),
 	}
 }
 
