@@ -1,5 +1,5 @@
-server_port: 8080
+server_port: 7020
 price_management_host: 'localhost'
-price_management_port: 7020
+price_management_port: 8080
 location_tree: '../data/locations_tree.json'
 category_tree: '../data/category_tree.json'
