@@ -7,22 +7,26 @@ import (
 )
 
 func TestDeterministicCategories(t *testing.T) {
-	retrival.GetCategoriesTree()
+	_, err := retrival.BuildCategoryTreeFromFile("../data/category_tree.json")
+	require.NoError(t, err)
 	answer := retrival.ShowCategoryTree(false)
 	for i := 0; i < 10; i++ {
 		clear(retrival.IDToCategoryNodeMap)
 		retrival.CategoryID = 0
-		retrival.GetCategoriesTree()
+		_, err = retrival.BuildCategoryTreeFromFile("../data/category_tree.json")
+		require.NoError(t, err)
 		require.Equal(t, answer, retrival.ShowCategoryTree(false))
 	}
 }
 
 func TestDeterministicLocation(t *testing.T) {
-	retrival.GetLocationsTree()
+	_, err := retrival.BuildLocationTreeFromFile("../data/locations_tree.json")
+	require.NoError(t, err)
 	answer := retrival.ShowLocationTree(false)
 	for i := 0; i < 5; i++ {
 		retrival.LocationID = 0
-		retrival.GetLocationsTree()
+		_, err := retrival.BuildLocationTreeFromFile("../data/locations_tree.json")
+		require.NoError(t, err)
 		require.Equal(t, answer, retrival.ShowLocationTree(false))
 	}
 }

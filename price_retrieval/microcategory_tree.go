@@ -1,11 +1,11 @@
 package price_retrival
 
 import (
-	"fmt"
-	"slices"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
+	"slices"
 )
 
 var IDToCategoryNodeMap = map[uint64]*CategoryNode{}
@@ -43,7 +43,12 @@ func BuildCategoryTreeFromFile(filename string) (*CategoryNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(file)
 
 	var categories []JSONCategory
 	if err := json.NewDecoder(file).Decode(&categories); err != nil {

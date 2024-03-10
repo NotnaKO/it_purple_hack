@@ -1,4 +1,4 @@
-package main
+package price_retrival
 
 type Connector interface {
 	// TODO support multiple tables
