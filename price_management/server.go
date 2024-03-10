@@ -172,7 +172,7 @@ func main() {
 	}(db)
 
 	priceManager, err := NewPriceManagementService(db, os.Args[6])
-	if (err != nil) {
+	if err != nil {
 		logger.Fatal(err)
 		return
 	}

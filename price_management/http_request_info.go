@@ -41,7 +41,7 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 	return HttpGetRequestInfo{
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
-		DataBaseID: dbID,
+		DataBaseID:      dbID,
 	}, nil
 }
 
@@ -92,6 +92,6 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
 		Price:           price,
-		DataBaseID: dbID,
+		DataBaseID:      dbID,
 	}, nil
 }
