@@ -1,4 +1,4 @@
-package main
+package price_retrival
 
 import (
 	"database/sql"
