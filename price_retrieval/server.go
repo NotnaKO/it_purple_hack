@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -108,9 +107,15 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	BuildLocationTreeFromFile(config.locationTree)
+	_, err = BuildLocationTreeFromFile(config.locationTree)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
-	BuildCategoryTreeFromFile(config.categoryTree)
+	_, err = BuildCategoryTreeFromFile(config.categoryTree)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	handler := NewHandler()
 
@@ -119,7 +124,7 @@ func main() {
 	go func() {
 		port := strconv.Itoa(int(config.serverPort))
 		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
-		log.Fatal(http.ListenAndServe(":"+port, nil))
+		logrus.Fatal(http.ListenAndServe(":"+port, nil))
 	}()
 
 	select {}
