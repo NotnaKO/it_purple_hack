@@ -26,7 +26,7 @@ func NewHandler() *Handler {
 
 	return &Handler{
 		logger:    logger,
-		connector: NewPriceManagerConnector(strconv.Itoa(int(config.priceManagementHost)), strconv.Itoa(int(config.priceManagementPort))),
+		connector: NewPriceManagerConnector(config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort))),
 	}
 }
 
@@ -111,12 +111,12 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	_, err = BuildLocationTreeFromFile(config.locationTree)
+	_, err = BuildLocationTreeFromFile(config.LocationTree)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	_, err = BuildCategoryTreeFromFile(config.categoryTree)
+	_, err = BuildCategoryTreeFromFile(config.CategoryTree)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func main() {
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
 	go func() {
-		port := strconv.Itoa(int(config.serverPort))
+		port := strconv.Itoa(int(config.ServerPort))
 		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
 		logrus.Fatal(http.ListenAndServe(":"+port, nil))
 	}()

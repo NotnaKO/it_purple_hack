@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	serverPort          uint   `yaml:"server_port"`
-	priceManagementHost uint   `yaml:"price_management_host"`
-	priceManagementPort uint   `yaml:"price_management_port"`
-	locationTree        string `yaml:"location_tree"`
-	categoryTree        string `yaml:"category_tree"`
+	ServerPort          uint   `yaml:"server_port"`
+	PriceManagementHost string `yaml:"price_management_host"`
+	PriceManagementPort uint   `yaml:"price_management_port"`
+	LocationTree        string `yaml:"location_tree"`
+	CategoryTree        string `yaml:"category_tree"`
 }
 
 func loadConfig(path string) (Config, error) {
@@ -21,7 +21,7 @@ func loadConfig(path string) (Config, error) {
 	}
 	decoder := yaml.NewDecoder(file)
 	decoder.KnownFields(true)
-	err = decoder.Decode(config)
+	err = decoder.Decode(&config)
 	if err != nil {
 		return Config{}, err
 	}

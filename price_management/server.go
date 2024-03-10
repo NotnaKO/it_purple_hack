@@ -112,7 +112,7 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 
 func ConnectToDatabase() (*sql.DB, error) {
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
-		config.postgresqlUser, config.password, config.postgresqlHost, config.dbname))
+		config.PostgresqlUser, config.Password, config.PostgresqlHost, config.Dbname))
 }
 
 var configPath = flag.String("config_path", "",
@@ -157,7 +157,7 @@ func main() {
 
 	// TODO kubernetes. right now leave only one port
 	go func() {
-		port := strconv.Itoa(int(config.serverPort))
+		port := strconv.Itoa(int(config.ServerPort))
 		fmt.Printf("Price Management Service is listening on port %s...\n", port)
 		err := http.ListenAndServe(":"+port, nil)
 		if err != nil {

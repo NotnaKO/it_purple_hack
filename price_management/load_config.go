@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	serverPort     uint   `yaml:"server_port"`
-	postgresqlUser string `yaml:"postgresql_user"`
-	password       string `yaml:"password"`
-	postgresqlHost string `yaml:"postgresql_host"`
-	dbname         string `yaml:"dbname"`
+	ServerPort     uint   `yaml:"server_port"`
+	PostgresqlUser string `yaml:"postgresql_user"`
+	Password       string `yaml:"password"`
+	PostgresqlHost string `yaml:"postgresql_host"`
+	Dbname         string `yaml:"dbname"`
 }
 
 func loadConfig(path string) (Config, error) {
