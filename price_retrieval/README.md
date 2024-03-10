@@ -6,9 +6,17 @@
 `/retrieve`:
 по `location_id`, `microcategory_id`, `user_id` ищет цену для данного пользователя.
 
+Помощь
+
+```bash
+go build
+./price_retrieval --help
+```
+
 ### Сборка и запуск
 ```bash
-go build && go run .
+go build
+./price_retrieval -config_path=../config/price_retrieval.yaml
 ```
 
 ### Пример запроса
