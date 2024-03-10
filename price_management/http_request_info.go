@@ -8,7 +8,7 @@ import (
 
 type HttpGetRequestInfo struct {
 	LocationID, MicrocategoryID uint64
-	DataBaseId                  uint64
+	DataBaseID                  uint64
 }
 
 func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
@@ -41,7 +41,7 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 	return HttpGetRequestInfo{
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
-		DataBaseId: dbID,
+		DataBaseID: dbID,
 	}, nil
 }
 

@@ -18,8 +18,6 @@ type JSONCategory struct {
 	Id   string `json:"id"`
 }
 
-var DataBaseById map[uint64]string
-
 type Handler struct {
 	logger       *logrus.Logger
 	priceManager *PriceManager
@@ -27,8 +25,8 @@ type Handler struct {
 
 func NewHandler(priceManager *PriceManager, logger *logrus.Logger) *Handler {
 	return &Handler{
-		logger:          logger,
-		priceManager:    priceManager,
+		logger:       logger,
+		priceManager: priceManager,
 	}
 }
 
@@ -123,10 +121,10 @@ func ConnectToDatabase() (*sql.DB, error) {
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 
-func ParseTableIdJson(filename string)  error {
+func ParseTableIdJson(filename string) (map[uint64]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -137,17 +135,17 @@ func ParseTableIdJson(filename string)  error {
 
 	var tables []JSONCategory
 	if err := json.NewDecoder(file).Decode(&tables); err != nil {
-		return err
+		return nil, err
 	}
-	DataBaseById = make(map[uint64]string)
+	DataBaseById := make(map[uint64]string)
 	for _, table := range tables {
 		num, err := strconv.ParseUint(table.Id, 10, 64)
 		if err != nil {
-			return err 
+			return nil, err
 		}
 		DataBaseById[num] = table.Name
 	}
-	return nil
+	return DataBaseById, nil
 }
 
 func main() {
@@ -173,9 +171,12 @@ func main() {
 		}
 	}(db)
 
-	priceManager := NewPriceManagementService(db)
+	priceManager, err := NewPriceManagementService(db, os.Args[6])
+	if (err != nil) {
+		logger.Fatal(err)
+		return
+	}
 	handler := NewHandler(priceManager, logger)
-	ParseTableIdJson(os.Args[6])
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
 	// TODO kubernetes. right now leave only one port
@@ -189,6 +190,8 @@ func main() {
 }
 
 /*
+right now request:
+need config
 go build
 ./price_management 5432 postgres 1234 localhost price_management data/data_base.json
 */
