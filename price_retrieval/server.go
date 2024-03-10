@@ -28,7 +28,7 @@ func NewHandler() *Handler {
 		logger: logger,
 		connector: NewPriceManagerConnector(
 			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
-			"localhost:6379", "", 0,
+			config.RedisHost, config.RedisPassword, config.RedisDB,
 		),
 	}
 }
@@ -99,7 +99,8 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 
 var configPath = flag.String("config_path", "",
 	"Path to the retrieval file .yaml file which contains server_port, price_management_host, "+
-		"price_management_port, locations_tree, category_tree. Location tree and Category tree should be json file")
+		"price_management_port, redis_host, redis_password, redis_db, locations_tree, category_tree. "+
+		"Location tree and Category tree should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 

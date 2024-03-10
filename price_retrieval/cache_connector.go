@@ -36,8 +36,6 @@ func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID uint64) (ui
 	ctx := context.Background()
 	price, err := c.getPriceFromCache(ctx, locationID, microcategoryID)
 	if err != nil {
-		//logrus.Error("Error retrieving price from cache:", err)
-
 		// Attempt to fetch price from the Price Manager if it wasn't found in the cache
 		price, err = c.fetchPriceFromManager(ctx, locationID, microcategoryID)
 		if err != nil {

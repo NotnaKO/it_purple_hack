@@ -1,14 +1,18 @@
 package main
 
 import (
-	"gopkg.in/yaml.v3"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	ServerPort          uint   `yaml:"server_port"`
 	PriceManagementHost string `yaml:"price_management_host"`
 	PriceManagementPort uint   `yaml:"price_management_port"`
+	RedisHost           string `yaml:"redis_host"`
+	RedisPassword       string `yaml:"redis_password"`
+	RedisDB             int    `yaml:"redis_db"`
 	LocationTree        string `yaml:"location_tree"`
 	CategoryTree        string `yaml:"category_tree"`
 }
