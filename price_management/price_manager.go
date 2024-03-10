@@ -2,6 +2,7 @@ package main
 
 import "database/sql"
 
+// TODO create hot table
 type PriceManager struct {
 	db *sql.DB
 }

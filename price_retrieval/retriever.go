@@ -1,4 +1,4 @@
-package price_retrival
+package main
 
 import (
 	"database/sql"
@@ -22,6 +22,10 @@ type searchRequest struct {
 func (r *Retriever) Search(info *ConnectionInfo) (uint64, error) {
 	location := IDToLocationNodeMap[info.LocationID]
 	category := IDToCategoryNodeMap[info.MicrocategoryID]
+	if location == nil || category == nil {
+		return 0, NoSuchCategoryAndLocation
+	}
+
 	request := searchRequest{
 		location: location,
 		category: category,
@@ -47,6 +51,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 }
 
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (uint64, error) {
+	// TODO FIX !!!!!!!
 	resp, err := http.Get(
 		fmt.Sprintf("http://localhost:8080/get_price?location_id=%d&microcategory_id=%d",
 			request.location.ID, request.category.ID))
@@ -55,11 +60,7 @@ func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (u
 		if err != nil {
 			return 0, err
 		}
-		search, err := r.search(nextRequest, firstRequest)
-		if err != nil {
-			return 0, err
-		}
-		return search, nil
+		return r.search(nextRequest, firstRequest)
 	}
 	if err != nil {
 		return 0, err

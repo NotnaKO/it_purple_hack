@@ -1,4 +1,4 @@
-package price_retrival
+package main
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 	price, err := retriever.Search(&info)
 	if err != nil {
 		h.logServerError(r, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -86,12 +86,21 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 	}).Error("Internal Server Error")
 }
 
-func ServerMain() {
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("Usage: ./price_retrieval [server_port]")
+		return
+	}
+
 	handler := NewHandler()
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
-	port := os.Args[1]
-	fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	go func() {
+		port := os.Args[1]
+		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
+		log.Fatal(http.ListenAndServe(":"+port, nil))
+	}()
+
+	select {}
 }
