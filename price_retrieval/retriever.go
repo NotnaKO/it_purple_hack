@@ -15,9 +15,11 @@ type searchRequest struct {
 }
 
 type SearchResponse struct {
-	location *LocationNode
-	category *CategoryNode
-	userID   uint64
+	location        *LocationNode
+	category        *CategoryNode
+	price           uint64
+	discountSegment uint64
+	userID          uint64
 }
 
 // Search Возвращает цену в копейках
@@ -48,7 +50,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 	return request, NoSuchCategoryAndLocation
 }
 
-func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (uint64, error) {
+func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (SearchResponse, error) {
 	// TODO add discount tables
 	price, err := r.connector.GetPrice(request.location.ID, request.category.ID)
 	if errors.Is(err, &NoResultError{}) {
