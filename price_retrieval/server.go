@@ -95,7 +95,7 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 var configPath = flag.String("config_path", "",
-	"Path to the retrieval file .yaml file which contains server port, price_management_host, "+
+	"Path to the retrieval file .yaml file which contains server_port, price_management_host, "+
 		"price_management_port, locations_tree, category_tree. Location tree and Category tree should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
