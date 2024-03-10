@@ -8,6 +8,7 @@ import (
 
 type HttpGetRequestInfo struct {
 	LocationID, MicrocategoryID uint64
+	DataBaseID                  uint64
 }
 
 func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
@@ -29,15 +30,25 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 		return HttpGetRequestInfo{}, errors.New("invalid microcategory_id")
 	}
 
+	dbIDS := r.URL.Query().Get("data_base_id")
+	dbID := uint64(1)
+	if dbIDS != "" {
+		dbID, err = strconv.ParseUint(dbIDS, 10, 64)
+		if err != nil {
+			return HttpGetRequestInfo{}, errors.New("invalid microcategory_id")
+		}
+	}
 	return HttpGetRequestInfo{
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
+		DataBaseID:      dbID,
 	}, nil
 }
 
 type HttpSetRequestInfo struct {
 	LocationID, MicrocategoryID uint64
 	Price                       float64
+	DataBaseID                  uint64
 }
 
 func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
@@ -68,9 +79,19 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
 	}
 
+	dbIDS := r.URL.Query().Get("data_base_id")
+	dbID := uint64(1)
+	if dbIDS != "" {
+		dbID, err = strconv.ParseUint(dbIDS, 10, 64)
+		if err != nil {
+			return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
+		}
+	}
+
 	return HttpSetRequestInfo{
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
 		Price:           price,
+		DataBaseID:      dbID,
 	}, nil
 }

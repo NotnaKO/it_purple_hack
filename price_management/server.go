@@ -6,11 +6,17 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
+
+type JSONCategory struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
 
 type Handler struct {
 	logger       *logrus.Logger
@@ -115,9 +121,36 @@ func ConnectToDatabase() (*sql.DB, error) {
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 
+func ParseTableIdJson(filename string) (map[uint64]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(file)
+
+	var tables []JSONCategory
+	if err := json.NewDecoder(file).Decode(&tables); err != nil {
+		return nil, err
+	}
+	DataBaseById := make(map[uint64]string)
+	for _, table := range tables {
+		num, err := strconv.ParseUint(table.Id, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		DataBaseById[num] = table.Name
+	}
+	return DataBaseById, nil
+}
+
 func main() {
-	if len(os.Args) != 6 {
-		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname]")
+	if len(os.Args) != 7 {
+		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname] [data_base_json]")
 		return
 	}
 
@@ -138,12 +171,14 @@ func main() {
 		}
 	}(db)
 
-	priceManager := NewPriceManagementService(db)
+	priceManager, err := NewPriceManagementService(db, os.Args[6])
+	if err != nil {
+		logger.Fatal(err)
+		return
+	}
 	handler := NewHandler(priceManager, logger)
-
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
-
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := os.Args[1]
@@ -153,3 +188,10 @@ func main() {
 
 	select {}
 }
+
+/*
+right now request:
+need config
+go build
+./price_management 5432 postgres 1234 localhost price_management data/data_base.json
+*/
