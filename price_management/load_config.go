@@ -19,7 +19,9 @@ func loadConfig(path string) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	err = yaml.NewDecoder(file).Decode(config)
+	decoder := yaml.NewDecoder(file)
+	decoder.KnownFields(true)
+	err = decoder.Decode(&config)
 	if err != nil {
 		return Config{}, err
 	}
