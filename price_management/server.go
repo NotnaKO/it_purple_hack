@@ -6,11 +6,19 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
+
+type JSONCategory struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
+
+var DataBaseById map[uint64]string
 
 type Handler struct {
 	logger       *logrus.Logger
@@ -19,8 +27,8 @@ type Handler struct {
 
 func NewHandler(priceManager *PriceManager, logger *logrus.Logger) *Handler {
 	return &Handler{
-		logger:       logger,
-		priceManager: priceManager,
+		logger:          logger,
+		priceManager:    priceManager,
 	}
 }
 
@@ -115,9 +123,36 @@ func ConnectToDatabase() (*sql.DB, error) {
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
 }
 
+func ParseTableIdJson(filename string)  error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}(file)
+
+	var tables []JSONCategory
+	if err := json.NewDecoder(file).Decode(&tables); err != nil {
+		return err
+	}
+	DataBaseById = make(map[uint64]string)
+	for _, table := range tables {
+		num, err := strconv.ParseUint(table.Id, 10, 64)
+		if err != nil {
+			return err 
+		}
+		DataBaseById[num] = table.Name
+	}
+	return nil
+}
+
 func main() {
-	if len(os.Args) != 6 {
-		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname]")
+	if len(os.Args) != 7 {
+		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname] [data_base_json]")
 		return
 	}
 
@@ -140,10 +175,9 @@ func main() {
 
 	priceManager := NewPriceManagementService(db)
 	handler := NewHandler(priceManager, logger)
-
+	ParseTableIdJson(os.Args[6])
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
-
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := os.Args[1]
@@ -153,3 +187,8 @@ func main() {
 
 	select {}
 }
+
+/*
+go build
+./price_management 5432 postgres 1234 localhost price_management data/data_base.json
+*/
