@@ -12,7 +12,8 @@ import (
 )
 
 type Handler struct {
-	logger *logrus.Logger
+	logger    *logrus.Logger
+	connector Connector
 }
 
 func NewHandler() *Handler {
@@ -22,7 +23,8 @@ func NewHandler() *Handler {
 	logger.SetLevel(logrus.InfoLevel) // Set log level to info
 
 	return &Handler{
-		logger: logger,
+		logger:    logger,
+		connector: NewPriceManagerConnector(os.Args[2], os.Args[3]),
 	}
 }
 
@@ -38,7 +40,7 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Вызываем функцию roadUpSearch для получения цены с помощью алгоритма RoadUpSearch
-	var retriever Retriever
+	retriever := Retriever{h.connector}
 	price, err := retriever.Search(&info)
 	if err != nil {
 		h.logServerError(r, err)
@@ -87,10 +89,16 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: ./price_retrieval [server_port]")
+	if len(os.Args) != 6 {
+		fmt.Println("Usage: ./price_retrieval [server_port] [price_management_host] [price_management_port] [locations_tree.json] [category_tree.json]")
 		return
 	}
+
+	locationTreeJson := os.Args[4]
+	BuildLocationTreeFromFile(locationTreeJson)
+
+	categoryTreeJson := os.Args[5]
+	BuildCategoryTreeFromFile(categoryTreeJson)
 
 	handler := NewHandler()
 

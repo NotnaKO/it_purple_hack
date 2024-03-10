@@ -1,29 +1,13 @@
 package price_retrival
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
+	"os"
 )
 
 var IDToLocationNodeMap = map[uint64]*LocationNode{}
-
-func GetLocationsTree() *LocationNode {
-	// Создаем корневую локацию - Все регионы
-	allRegions := NewLocation("Все регионы")
-
-	for _, item := range rawLocations {
-		regionNode := NewLocation(item.head)
-
-		for _, city := range item.children {
-			cityNode := NewLocation(city)
-			regionNode.AddChild(cityNode)
-		}
-		allRegions.AddChild(regionNode)
-	}
-
-	return allRegions
-}
-
 var LocationID uint64
 
 // LocationNode представляет собой узел дерева локаций
@@ -50,6 +34,51 @@ func (l *LocationNode) AddChild(child *LocationNode) {
 	child.Parent = l
 }
 
+type JSONLocation struct {
+	Name     string   `json:"name"`
+	Children []string `json:"children"`
+}
+
+func BuildLocationTreeFromFile(filename string) (*LocationNode, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var locations []JSONLocation
+	if err := json.NewDecoder(file).Decode(&locations); err != nil {
+		return nil, err
+	}
+
+	// Create the root node
+	rootNode := NewLocation("Все регионы")
+
+	// Map to store location nodes by name
+	locationNodeMap := make(map[string]*LocationNode)
+
+	// Iterate over JSON locations and construct the tree
+	for _, jsonLocation := range locations {
+		locationNode := getLocationNode(jsonLocation.Name, locationNodeMap)
+		for _, childName := range jsonLocation.Children {
+			childNode := getLocationNode(childName, locationNodeMap)
+			locationNode.AddChild(childNode)
+		}
+		rootNode.AddChild(locationNode)
+	}
+
+	return rootNode, nil
+}
+
+func getLocationNode(name string, locationNodeMap map[string]*LocationNode) *LocationNode {
+	if node, ok := locationNodeMap[name]; ok {
+		return node
+	}
+	node := NewLocation(name)
+	locationNodeMap[name] = node
+	return node
+}
+
 // PrintLocationTree Выводит дерево локаций;
 // предполагается, что не используется часто
 func ShowLocationTree(printNeed bool) []string {
@@ -71,9 +100,4 @@ func ShowLocationTree(printNeed bool) []string {
 		}
 	}
 	return answer
-}
-
-type rawLocationItem struct {
-	head     string
-	children []string
 }

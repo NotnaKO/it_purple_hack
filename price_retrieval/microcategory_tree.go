@@ -3,28 +3,12 @@ package price_retrival
 import (
 	"fmt"
 	"slices"
+	"encoding/json"
+	"fmt"
+	"os"
 )
 
 var IDToCategoryNodeMap = map[uint64]*CategoryNode{}
-
-func GetCategoriesTree() *CategoryNode {
-	// Создаем корневую категорию - ROOT
-	rootNode := NewCategory("ROOT")
-
-	for _, item := range rawCategories {
-		categoryNode := NewCategory(item.head)
-
-		for _, subCategory := range item.children {
-			subCategoryNode := NewCategory(subCategory)
-			categoryNode.AddChild(subCategoryNode)
-		}
-
-		rootNode.AddChild(categoryNode)
-	}
-
-	return rootNode
-}
-
 var CategoryID uint64
 
 // CategoryNode представляет собой узел дерева локаций
@@ -49,6 +33,51 @@ func (l *CategoryNode) AddChild(child *CategoryNode) {
 	child.Parent = l
 }
 
+type JSONCategory struct {
+	Name     string   `json:"name"`
+	Children []string `json:"children"`
+}
+
+func BuildCategoryTreeFromFile(filename string) (*CategoryNode, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var categories []JSONCategory
+	if err := json.NewDecoder(file).Decode(&categories); err != nil {
+		return nil, err
+	}
+
+	// Create the root node
+	rootNode := NewCategory("ROOT")
+
+	// Map to store category nodes by name
+	categoryNodeMap := make(map[string]*CategoryNode)
+
+	// Iterate over JSON categories and construct the tree
+	for _, jsonCategory := range categories {
+		categoryNode := getCategoryNode(jsonCategory.Name, categoryNodeMap)
+		for _, childName := range jsonCategory.Children {
+			childNode := getCategoryNode(childName, categoryNodeMap)
+			categoryNode.AddChild(childNode)
+		}
+		rootNode.AddChild(categoryNode)
+	}
+
+	return rootNode, nil
+}
+
+func getCategoryNode(name string, categoryNodeMap map[string]*CategoryNode) *CategoryNode {
+	if node, ok := categoryNodeMap[name]; ok {
+		return node
+	}
+	node := NewCategory(name)
+	categoryNodeMap[name] = node
+	return node
+}
+
 func ShowCategoryTree(printNeed bool) []string {
 	var answer []string
 	for ID, ptr := range IDToCategoryNodeMap {
@@ -68,10 +97,4 @@ func ShowCategoryTree(printNeed bool) []string {
 		}
 	}
 	return answer
-
-}
-
-type rawCategoryItem struct {
-	head     string
-	children []string
 }
