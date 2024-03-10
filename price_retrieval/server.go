@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -24,7 +27,7 @@ func NewHandler() *Handler {
 
 	return &Handler{
 		logger:    logger,
-		connector: NewPriceManagerConnector(os.Args[2], os.Args[3]),
+		connector: NewPriceManagerConnector(strconv.Itoa(int(config.priceManagementHost)), strconv.Itoa(int(config.priceManagementPort))),
 	}
 }
 
@@ -88,24 +91,33 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 	}).Error("Internal Server Error")
 }
 
+var configPath = flag.String("config_path", "",
+	"Path to the retrieval file .yaml file which contains server port, price_management_host, "+
+		"price_management_port, locations_tree, category_tree. Location tree and Category tree should be json file")
+var config Config
+var NoConfig = errors.New("you should set config file. Use --help to information")
+
 func main() {
-	if len(os.Args) != 6 {
-		fmt.Println("Usage: ./price_retrieval [server_port] [price_management_host] [price_management_port] [locations_tree.json] [category_tree.json]")
-		return
+	flag.Parse()
+	if *configPath == "" {
+		logrus.Fatal(NoConfig)
+	}
+	err := error(nil)
+	config, err = loadConfig(*configPath)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
-	locationTreeJson := os.Args[4]
-	BuildLocationTreeFromFile(locationTreeJson)
+	BuildLocationTreeFromFile(config.locationTree)
 
-	categoryTreeJson := os.Args[5]
-	BuildCategoryTreeFromFile(categoryTreeJson)
+	BuildCategoryTreeFromFile(config.categoryTree)
 
 	handler := NewHandler()
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
 	go func() {
-		port := os.Args[1]
+		port := strconv.Itoa(int(config.serverPort))
 		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
 		log.Fatal(http.ListenAndServe(":"+port, nil))
 	}()
