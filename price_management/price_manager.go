@@ -2,21 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 // TODO create hot table
 type PriceManager struct {
 	db *sql.DB
-	id_db map[int]string
 }
 
 func NewPriceManagementService(db *sql.DB) *PriceManager {
-	pm := &PriceManager{
+	return &PriceManager{
 		db: db,
-		id_db: make(map[int]string, 0),
 	}
-	return pm
 }
 
 // SetPrice устанавливает цену для указанных местоположения и микрокатегории
