@@ -22,3 +22,5 @@ go.work
 
 price_management/price_management
 price_retrieval/price_retrieval
+
+.DS_Store

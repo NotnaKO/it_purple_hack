@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Analytics and Metrics</title>
+    <style>
+        .container {
+            display: flex;
+        }
+        .column {
+            flex: 1;
+            padding: 10px;
+        }
+        .json {
+            /* white-space: pre-wrap; */
+            background-color: #f0f0f0;
+            margin-top: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .metrics {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .input {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 5px;
+        }
+
+        .grey {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            margin-bottom: 2px;
+        }
+
+        #sendCheckbox {
+            padding: 0;
+        }
+        #sendButton {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none; /* initially hide button */
+        }
+        ol {
+            list-style-type: none;
+            counter-reset: item;
+        }
+        li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        li::before {
+            content: counter(item) ".";
+            counter-increment: item;
+            color: #000;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .price {
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column">
+            <h2>Analytics</h2>
+            <input id="baselineInput" class="input" type="text" placeholder="Baseline matrix name">
+            <div id="discountInputs">
+                <div class="input-row">
+                    <input type="text" placeholder="Segment id">
+                    <input type="text" placeholder="Discount matrix name">
+                    <button class="grey" onclick="removeInput(this)">-</button>
+                </div>
+            </div>
+            <button class="grey" onclick="addInput()">+</button>
+            <button class="grey" onclick="showData()">Show JSON Data</button>
+            <div class="json">
+            <div id="jsonData"></div>
+            <div id="jsonSender"></div>
+            </div>
+
+        </div>
+        <div class="column">
+            <h2>Metrics</h2>
+            <div class="metrics" id="metricsData">
+                <ol>
+                    <li>Цена товара A: <span class="price">$100</span></li>
+                    <li>Цена товара B: <span class="price">$150</span></li>
+                    <li>Цена товара C: <span class="price">$80</span></li>
+                    <li>Цена товара D: <span class="price">$120</span></li>
+                    <li>Скидка на товар E: <span class="price">15%</span></li>
+                    <li>Валюта: USD</li>
+                    <li>Дата обновления: 01.10.2021</li>
+                    <li>Цена доставки: <span class="price">$10</span></li>
+                    <li>Общая сумма заказа: <span class="price">$400</span></li>
+                </ol>
+                <button class="grey">Update metrics</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showData() {
+            const baselineInput = document.getElementById('baselineInput').value;
+            const discountRows = document.querySelectorAll('#discountInputs .input-row');
+            const discounts = {};
+
+
+            discountRows.forEach(row => {
+                const discountSegmentIdInput = row.querySelector('input[type="text"]:first-child');
+                const valueInput = row.querySelector('input[type="text"]:nth-child(2)');
+
+                let discountSegmentId = parseInt(discountSegmentIdInput.value, 10);
+                const value = valueInput.value;
+
+                if (!isNaN(discountSegmentId) && Number.isInteger(discountSegmentId)) {
+                    discounts[discountSegmentId] = value;
+                } else {
+                    alert('Discount Segment ID should be an integer. Please enter a valid integer.');
+                    return
+                }
+            });
+
+            const jsonData = {
+                baseline: baselineInput,
+                discounts: discounts
+            };
+
+            const jsonDataDiv = document.getElementById('jsonData');
+            jsonDataDiv.innerHTML = `<pre>${JSON.stringify(jsonData, null, 2)}</pre>`;
+
+            const jsonDataDiv2 = document.getElementById('jsonSender');
+            jsonDataDiv2.innerHTML = `<input type="checkbox" id="sendCheckbox" onchange="toggleSendButton()">Check to enable button
+            <button id="sendButton" onclick="sendData()">Send to server</button>`;
+        }
+
+        function addInput() {
+            const discountInputs = document.getElementById('discountInputs');
+
+            const newInputRow = document.createElement('div');
+            newInputRow.classList.add('input-row');
+            newInputRow.innerHTML = `
+                <input type="text" placeholder="Segment id">
+                <input type="text" placeholder="Discount matrix name">
+                <button class="grey" onclick="removeInput(this)">-</button>
+            `;
+
+            discountInputs.appendChild(newInputRow);
+        }
+
+        function removeInput(button) {
+            button.parentNode.remove();
+        }
+
+        function toggleSendButton() {
+            const checkbox = document.getElementById('sendCheckbox');
+            const button = document.getElementById('sendButton');
+
+            if (checkbox.checked) {
+                button.style.display = 'block'; // Show the button
+            } else {
+                button.style.display = 'none'; // Hide the button
+            }
+        }
+
+        function sendData() {
+            const jsonString = document.getElementById('jsonData').textContent;
+            console.log('Строка из элемента "jsonData":', jsonString);
+
+            fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonString
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Data sent successfully via POST request.');
+                } else {
+                    alert('Error sending data.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
