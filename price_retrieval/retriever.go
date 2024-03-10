@@ -1,15 +1,11 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"net/http"
-	"strings"
 )
 
 type Retriever struct {
+	connector Connector
 }
 
 type searchRequest struct {
@@ -51,11 +47,9 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 }
 
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (uint64, error) {
-	// TODO FIX !!!!!!!
-	resp, err := http.Get(
-		fmt.Sprintf("http://localhost:8080/get_price?location_id=%d&microcategory_id=%d",
-			request.location.ID, request.category.ID))
-	if errors.Is(err, sql.ErrNoRows) {
+	// TODO add discount tables
+	price, err := r.connector.GetPrice(request.location.ID, request.category.ID)
+	if errors.Is(err, &NoResultError{}) {
 		nextRequest, err := next(request, firstRequest)
 		if err != nil {
 			return 0, err
@@ -65,11 +59,5 @@ func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (u
 	if err != nil {
 		return 0, err
 	}
-	data := resp.Header.Get("Content-Type")
-	var handler priceHandler
-	err = json.NewDecoder(strings.NewReader(data)).Decode(&handler)
-	if err != nil {
-		return 0, err
-	}
-	return handler.price, nil
+	return price, nil
 }
