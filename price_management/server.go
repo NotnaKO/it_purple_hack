@@ -121,8 +121,8 @@ func ConnectToDatabase() (*sql.DB, error) {
 }
 
 var configPath = flag.String("config_path", "",
-	"Path to the retrieval file .yaml file which contains server_port,  "+
-		"price_management_port, locations_tree, category_tree. Location tree and Category tree should be json file")
+	"Path to the retrieval file .yaml file which contains server_port, postgresql_user "+
+		"password, postgresql_host, dbname, db_path_name. db_path_name should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
@@ -181,7 +181,7 @@ func main() {
 		}
 	}(db)
 
-	priceManager, err := NewPriceManagementService(db, os.Args[6])
+	priceManager, err := NewPriceManagementService(db, config.DbPathName)
 	if err != nil {
 		logger.Fatal(err)
 		return

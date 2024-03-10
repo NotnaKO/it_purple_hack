@@ -11,6 +11,7 @@ type Config struct {
 	Password       string `yaml:"password"`
 	PostgresqlHost string `yaml:"postgresql_host"`
 	Dbname         string `yaml:"dbname"`
+	DbPathName     string `yaml:"db_path_name"`
 }
 
 func loadConfig(path string) (Config, error) {
