@@ -59,7 +59,11 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 
 	// Отправляем ответ
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// Log request details
 	h.logRequest(r, startTime)
