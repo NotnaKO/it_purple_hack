@@ -1,10 +1,4 @@
-create table discount_matrix_1(
-    microcategory_id int,
-    location_id int,
-    price int
-);
-
-insert into discount_matrix_1 (microcategory_id, location_id, price)
+insert into matrix.discount_matrix_1 (microcategory_id, location_id, price)
 values  (18, 1, 5),
         (18, 2, 11),
         (18, 3, 16),
