@@ -14,6 +14,12 @@ type searchRequest struct {
 	userID   uint64
 }
 
+type SearchResponse struct {
+	location *LocationNode
+	category *CategoryNode
+	userID   uint64
+}
+
 // Search Возвращает цену в копейках
 func (r *Retriever) Search(info *ConnectionInfo) (uint64, error) {
 	location := IDToLocationNodeMap[info.LocationID]
@@ -28,10 +34,6 @@ func (r *Retriever) Search(info *ConnectionInfo) (uint64, error) {
 		userID:   info.UserID,
 	}
 	return r.search(request, request)
-}
-
-type priceHandler struct {
-	price uint64
 }
 
 var NoSuchCategoryAndLocation = errors.New("no such category and location")
@@ -54,7 +56,7 @@ func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (u
 		if err != nil {
 			return 0, err
 		}
-		return r.search(nextRequest, firstRequest)
+		return r.search(nextRequest, firstRequest) // TODO: no recursion
 	}
 	if err != nil {
 		return 0, err

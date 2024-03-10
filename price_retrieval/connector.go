@@ -2,7 +2,7 @@ package main
 
 type Connector interface {
 	// TODO support multiple tables
-	GetPrice(locationID, microcategoryID uint64) (uint64, error)
+	GetPrice(locationID, microcategoryID, discountSegment uint64) (uint64, error)
 }
 
 type NoResultError struct{}
