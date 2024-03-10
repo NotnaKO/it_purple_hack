@@ -1,10 +1,10 @@
-package price_retrival
+package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"slices"
 	"os"
+	"slices"
 )
 
 var IDToLocationNodeMap = map[uint64]*LocationNode{}
