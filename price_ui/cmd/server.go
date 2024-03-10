@@ -7,17 +7,6 @@ import (
 	"os"
 )
 
-/*
-Routes:
-
-/ - ANY - main.page.tmpl
-/create - POST - request to send email
-/about_us - ANY - about_us.page.tmpl
-/delivery - ANY - delivery.page.tmpl
-/goods_and_services - ANY - goods_and_services.page.tmpl
-
-*/
-
 func main() {
 
 	addr := flag.String("addr", "127.0.0.1:9992", "Сетевой адрес HTTP")

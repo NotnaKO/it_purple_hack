@@ -45,8 +45,8 @@ func (app *application) handleSimpleRequest(fileName string, path string) func(h
 }
 
 type storage struct {
-	Baseline  string            `json:"baseline"`
-	Discounts map[string]string `json:"discounts"`
+	Baseline  string         `json:"baseline"`
+	Discounts map[int]string `json:"discounts"`
 }
 
 func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Requ
 	app.infoLog.Printf("Save storage request: %v, %v", resp.Baseline, resp.Discounts)
 	w.WriteHeader(http.StatusOK)
 
-	// TODO save config file
+	// TODO send request to server
 }
 
 func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +80,4 @@ func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	// TODO send request for metrics
-
-	fmt.Fprint(w, "Gotcha!")
 }
