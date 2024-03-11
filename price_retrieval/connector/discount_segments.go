@@ -36,9 +36,10 @@ func GetSegmentsByUserIDs(userIDs []uint64) map[uint64][]uint64 {
 
 	for _, userID := range userIDs {
 		user_id_result := segmentByUserID[userID]
-		for i := baseTableName {
-			user_id_result := append(user_id_result, i)
+		for i := range baseTableName {
+			user_id_result = append(user_id_result, i)
 		}
+		result[userID] =  user_id_result
 	}
 	return result
 }
