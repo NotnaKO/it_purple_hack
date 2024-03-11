@@ -22,24 +22,24 @@ func LoadSegmentsByUserMap(path string) error {
 	if err != nil {
 		return err
 	}
-	segmentByUserID = make(map[uint64][]uint64, len(data))
+	segmentsByUserID = make(map[uint64][]uint64, len(data))
 	for _, item := range data {
-		segmentByUserID[item.UserID] = item.Segments
+		segmentsByUserID[item.UserID] = item.Segments
 	}
 	return nil
 }
 
-var segmentByUserID map[uint64][]uint64
+var segmentsByUserID map[uint64][]uint64
 
 func GetSegmentsByUserIDs(userIDs []uint64) map[uint64][]uint64 {
 	result := make(map[uint64][]uint64, len(userIDs))
 
 	for _, userID := range userIDs {
-		user_id_result := segmentByUserID[userID]
+		userIdResult := segmentsByUserID[userID]
 		for i := range baseTableName {
-			user_id_result = append(user_id_result, i)
+			userIdResult = append(userIdResult, i)
 		}
-		result[userID] = user_id_result
+		result[userID] = userIdResult
 	}
 	return result
 }

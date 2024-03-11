@@ -29,7 +29,7 @@ WARNING: this algorithm assume that baseline tables have names as baseline_matri
 */
 func (c *PriceManagerConnector) GetTablesInOrder(userID uint64) ([]SegmentAndTable, error) {
 	// In this problem we mustn't optimize this by caching
-	segments := GetSegmentsByUserIDs([]uint64{userID})[userID] // todo: add batching
+	segments := segmentsByUserID[userID] // todo: add batching
 	answer := make([]SegmentAndTable, len(segments))
 	for i, item := range segments {
 		answer[i] = SegmentAndTable{
@@ -99,7 +99,7 @@ func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locat
 			return 0, NoResult
 		}
 		logrus.Debug("Just internal error")
-		return 0, err
+		return 0, errors.New("request failed with status: " + resp.Status)
 	}
 
 	defer func(Body io.ReadCloser) {
