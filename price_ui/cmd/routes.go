@@ -14,9 +14,9 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("/add_request", app.addRequestHandler)
 	mux.HandleFunc("/get_request", app.getRequestHandler)
 
-	fileServer := http.FileServer(http.Dir("../src/"))
-	mux.Handle("/src", http.NotFoundHandler())
-	mux.Handle("/src/", http.StripPrefix("/src", fileServer))
+	fileServer := http.FileServer(http.Dir("./src/files"))
+	mux.Handle("/files", http.NotFoundHandler())
+	mux.Handle("/files/", http.StripPrefix("/files", fileServer))
 
 	return mux
 }
