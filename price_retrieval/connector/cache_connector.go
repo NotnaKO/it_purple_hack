@@ -76,12 +76,16 @@ func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID, tableID ui
 
 func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locationID,
 	microcategoryID, tableID uint64) (uint64, error) {
+	logrus.Debug("Request from manager: ", fmt.Sprintf(
+		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&data_base_id=%d",
+		c.pmHost, c.pmPort, locationID, microcategoryID, tableID))
 	url := fmt.Sprintf(
 		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&data_base_id=%d",
 		c.pmHost, c.pmPort, locationID, microcategoryID, tableID)
 
 	resp, err := http.Get(url)
 	if errors.Is(err, sql.ErrNoRows) {
+		logrus.Debug("No rows in table", tableID)
 		err = errors.Join(err, NoResult)
 	}
 	if err != nil {
@@ -115,14 +119,21 @@ func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locat
 
 func (c *PriceManagerConnector) getPriceFromCache(ctx context.Context,
 	locationID, microcategoryID, tableID uint64) (uint64, error) {
+	logrus.Debug("Search in cache by: ", fmt.Sprintf("%d:%d:%d",
+		locationID, microcategoryID, tableID))
 	price, err := c.redisClient.Get(ctx, fmt.Sprintf("%d:%d:%d",
 		locationID, microcategoryID, tableID)).Uint64()
 	if errors.Is(err, redis.Nil) {
 		// Cache miss
+		logrus.Debug(fmt.Sprintf("%d:%d:%d",
+			locationID, microcategoryID, tableID), " not found in cache")
 		return 0, errors.New("price not found in cache")
 	} else if err != nil {
+		logrus.Error("Cache finding", fmt.Sprintf("%d:%d:%d",
+			locationID, microcategoryID, tableID), "error:", err)
 		return 0, err
 	}
+	logrus.Debug("find in cache:", price)
 	// Cache hit
 	return price, nil
 }

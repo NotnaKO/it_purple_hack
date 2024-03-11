@@ -24,7 +24,7 @@ func NewHandler() *Handler {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel) // Set log level to info
+	logger.SetLevel(logrus.DebugLevel) // Set log level to info
 
 	return &Handler{
 		logger: logger,
@@ -101,6 +101,7 @@ var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
 	if *configPath == "" {
 		logrus.Fatal(NoConfig)

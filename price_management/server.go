@@ -155,6 +155,7 @@ func ParseTableIdJson(filename string) (map[uint64]string, error) {
 }
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
 	if *configPath == "" {
 		logrus.Fatal(NoConfig)
@@ -168,7 +169,7 @@ func main() {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel) // Set log level to info
+	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
 
 	db, err := ConnectToDatabase()
 	if err != nil {
