@@ -42,7 +42,7 @@ func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 		return SearchResponse{}, err
 	}
 	for _, segmentAndTable := range segmentWithTable {
-		response, err := r.search(request, request, segmentAndTable.TableName)
+		response, err := r.search(request, request, segmentAndTable.Segment)
 		if errors.Is(err, connector.NoResult) {
 			continue
 		}
@@ -67,14 +67,14 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 	return request, NoSuchCategoryAndLocation
 }
 
-func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableName string) (SearchResponse, error) {
-	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableName)
+func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
+	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableID)
 	if errors.Is(err, connector.NoResult) {
 		nextRequest, err := next(request, firstRequest)
 		if err != nil {
 			return SearchResponse{}, err
 		}
-		return r.search(nextRequest, firstRequest, tableName) // TODO: no recursion
+		return r.search(nextRequest, firstRequest, tableID) // TODO: no recursion
 	}
 	if err != nil {
 		return SearchResponse{}, err

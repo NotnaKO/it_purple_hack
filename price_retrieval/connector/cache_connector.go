@@ -60,12 +60,12 @@ func NewPriceManagerConnector(pmHost, pmPort, redisAddr, redisPassword string, r
 	}
 }
 
-func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID uint64, tableName string) (uint64, error) {
+func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID, tableID uint64) (uint64, error) {
 	ctx := context.Background()
-	price, err := c.getPriceFromCache(ctx, locationID, microcategoryID, tableName)
+	price, err := c.getPriceFromCache(ctx, locationID, microcategoryID, tableID)
 	if err != nil {
 		// Attempt to fetch price from the Price Manager if it wasn't found in the cache
-		price, err = c.fetchPriceFromManager(ctx, locationID, microcategoryID, tableName)
+		price, err = c.fetchPriceFromManager(ctx, locationID, microcategoryID, tableID)
 		if err != nil {
 			logrus.Error("Error fetching price from Price Manager:", err)
 			return 0, err
@@ -75,10 +75,10 @@ func (c *PriceManagerConnector) GetPrice(locationID, microcategoryID uint64, tab
 }
 
 func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locationID,
-	microcategoryID uint64, tableName string) (uint64, error) {
+	microcategoryID, tableID uint64) (uint64, error) {
 	url := fmt.Sprintf(
-		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&table_name=%s",
-		c.pmHost, c.pmPort, locationID, microcategoryID, tableName)
+		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&data_base_id=%d",
+		c.pmHost, c.pmPort, locationID, microcategoryID, tableID)
 
 	resp, err := http.Get(url)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -106,15 +106,17 @@ func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locat
 	}
 
 	// Store the fetched price in the cache
-	err = c.setPriceInCache(ctx, locationID, microcategoryID, tableName, data.Price)
+	err = c.setPriceInCache(ctx, locationID, microcategoryID, tableID, data.Price)
 	if err != nil {
 		logrus.Error("Error setting price in cache:", err)
 	}
 	return data.Price, nil
 }
 
-func (c *PriceManagerConnector) getPriceFromCache(ctx context.Context, locationID, microcategoryID uint64, tableID string) (uint64, error) {
-	price, err := c.redisClient.Get(ctx, fmt.Sprintf("%d:%d:%s", locationID, microcategoryID, tableID)).Uint64()
+func (c *PriceManagerConnector) getPriceFromCache(ctx context.Context,
+	locationID, microcategoryID, tableID uint64) (uint64, error) {
+	price, err := c.redisClient.Get(ctx, fmt.Sprintf("%d:%d:%d",
+		locationID, microcategoryID, tableID)).Uint64()
 	if errors.Is(err, redis.Nil) {
 		// Cache miss
 		return 0, errors.New("price not found in cache")
@@ -125,6 +127,8 @@ func (c *PriceManagerConnector) getPriceFromCache(ctx context.Context, locationI
 	return price, nil
 }
 
-func (c *PriceManagerConnector) setPriceInCache(ctx context.Context, locationID, microcategoryID uint64, tableName string, price uint64) error {
-	return c.redisClient.Set(ctx, fmt.Sprintf("%d:%d:%s", locationID, microcategoryID, tableName), price, time.Hour).Err()
+func (c *PriceManagerConnector) setPriceInCache(ctx context.Context,
+	locationID, microcategoryID, tableID uint64, price uint64) error {
+	return c.redisClient.Set(ctx, fmt.Sprintf("%d:%d:%d",
+		locationID, microcategoryID, tableID), price, time.Hour).Err()
 }

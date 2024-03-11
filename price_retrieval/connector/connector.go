@@ -8,7 +8,7 @@ type SegmentAndTable struct {
 }
 
 type Connector interface {
-	GetPrice(locationID, microcategoryID uint64, tableName string) (uint64, error)
+	GetPrice(locationID, microcategoryID, tableID uint64) (uint64, error)
 
 	GetTablesInOrder(userID uint64) ([]SegmentAndTable, error)
 }
