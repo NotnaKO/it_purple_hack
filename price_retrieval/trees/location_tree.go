@@ -1,4 +1,4 @@
-package main
+package trees
 
 import (
 	"encoding/json"

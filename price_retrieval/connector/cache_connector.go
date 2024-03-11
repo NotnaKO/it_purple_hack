@@ -1,14 +1,14 @@
-package main
+package connector
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 )
 

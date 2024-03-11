@@ -1,6 +1,7 @@
 package main
 
 import (
+	"connector"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -9,13 +10,14 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"trees"
 
 	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
 	logger    *logrus.Logger
-	connector Connector
+	connector connector.Connector
 }
 
 func NewHandler() *Handler {
@@ -26,7 +28,7 @@ func NewHandler() *Handler {
 
 	return &Handler{
 		logger: logger,
-		connector: NewPriceManagerConnector(
+		connector: connector.NewPriceManagerConnector(
 			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
 			config.RedisHost, config.RedisPassword, config.RedisDB,
 		),
@@ -115,12 +117,12 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	_, err = BuildLocationTreeFromFile(config.LocationTree)
+	_, err = trees.BuildLocationTreeFromFile(config.LocationTree)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	_, err = BuildCategoryTreeFromFile(config.CategoryTree)
+	_, err = trees.BuildCategoryTreeFromFile(config.CategoryTree)
 	if err != nil {
 		logrus.Fatal(err)
 	}
