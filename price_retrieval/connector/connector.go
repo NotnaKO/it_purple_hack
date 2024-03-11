@@ -13,4 +13,4 @@ type Connector interface {
 	GetTablesInOrder(userID uint64) ([]SegmentAndTable, error)
 }
 
-var NoResult = errors.New("invalid request")
+var NoResult = errors.New("no answer here")

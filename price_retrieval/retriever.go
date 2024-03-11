@@ -44,7 +44,7 @@ func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 	}
 	for _, segmentAndTable := range segmentWithTable {
 		response, err := r.search(request, request, segmentAndTable.Segment)
-		if errors.Is(err, connector.NoResult) {
+		if errors.Is(err, NoSuchCategoryAndLocation) {
 			logrus.Debug("No result in this table: continue")
 			continue
 		}
@@ -74,6 +74,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
 	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableID)
+
 	if errors.Is(err, connector.NoResult) {
 		logrus.Debug("No result from connector")
 		nextRequest, err := next(request, firstRequest)

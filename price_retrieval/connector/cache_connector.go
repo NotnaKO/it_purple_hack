@@ -1,9 +1,9 @@
 package connector
 
 import (
+	"bytes"
 	"cmp"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -84,13 +84,23 @@ func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locat
 		c.pmHost, c.pmPort, locationID, microcategoryID, tableID)
 
 	resp, err := http.Get(url)
-	if errors.Is(err, sql.ErrNoRows) {
-		logrus.Debug("No rows in table", tableID)
-		err = errors.Join(err, NoResult)
-	}
 	if err != nil {
 		return 0, err
 	}
+	if resp.StatusCode == http.StatusInternalServerError {
+		text, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logrus.Error("error while reading body:", err)
+			return 0, err
+		}
+		if bytes.Contains(text, []byte("no rows in result set")) {
+			logrus.Debug("No rows in table: ", tableID)
+			return 0, NoResult
+		}
+		logrus.Debug("Just internal error")
+		return 0, err
+	}
+
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
