@@ -39,6 +39,7 @@ func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 		category: category,
 	}
 	segmentWithTable, err := r.connector.GetTablesInOrder(info.UserID)
+	logrus.Debug("Get order: ", segmentWithTable)
 	if err != nil {
 		return SearchResponse{}, err
 	}

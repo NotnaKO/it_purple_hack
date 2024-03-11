@@ -29,7 +29,7 @@ WARNING: this algorithm assume that baseline tables have names as baseline_matri
 */
 func (c *PriceManagerConnector) GetTablesInOrder(userID uint64) ([]SegmentAndTable, error) {
 	// In this problem we mustn't optimize this by caching
-	segments := segmentsByUserID[userID] // todo: add batching
+	segments := GetSegmentsByUserIDs([]uint64{userID})[userID] // todo: add batching
 	answer := make([]SegmentAndTable, len(segments))
 	for i, item := range segments {
 		answer[i] = SegmentAndTable{
