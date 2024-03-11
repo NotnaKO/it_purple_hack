@@ -43,7 +43,7 @@ func GetSegmentsByUserIDs(userIDs []uint64) map[uint64][]uint64 {
 var tableNameByID map[uint64]string
 
 type tableAndID struct {
-	TableName string `json:"table_name"`
+	TableName string `json:"name"`
 	ID        uint64 `json:"id"`
 }
 

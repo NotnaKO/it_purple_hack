@@ -1,7 +1,9 @@
-{
-  "user_id": 1,
-  "segments": [
-    4,
-    6
-  ]
-}
+[
+  {
+    "user_id": 1,
+    "segments": [
+      4,
+      6
+    ]
+  }
+]

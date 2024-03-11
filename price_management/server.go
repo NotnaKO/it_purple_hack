@@ -17,7 +17,7 @@ import (
 
 type JSONCategory struct {
 	Name string `json:"name"`
-	Id   string `json:"id"`
+	Id   uint64 `json:"id"`
 }
 
 type Handler struct {
@@ -139,16 +139,14 @@ func ParseTableIdJson(filename string) (map[uint64]string, error) {
 	}(file)
 
 	var tables []JSONCategory
-	if err := json.NewDecoder(file).Decode(&tables); err != nil {
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&tables); err != nil {
 		return nil, err
 	}
 	DataBaseById := make(map[uint64]string)
 	for _, table := range tables {
-		num, err := strconv.ParseUint(table.Id, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		DataBaseById[num] = table.Name
+		DataBaseById[table.Id] = table.Name
 	}
 	return DataBaseById, nil
 }
