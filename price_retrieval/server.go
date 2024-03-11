@@ -126,12 +126,12 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	err = connector.LoadTableNameByID(config.DBNamePath)
+	err = connector.LoadTableNameByID(config.DBNamePath, true)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	err = connector.LoadBaseTable(config.BaseTablePath)
+	err = connector.LoadTableNameByID(config.BaseTablePath, false)
 	if err != nil {
 		logrus.Fatal(err)
 	}
