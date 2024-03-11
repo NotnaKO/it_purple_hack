@@ -1,12 +1,16 @@
 package connector
 
+import "errors"
+
+type SegmentAndTable struct {
+	Segment   uint64 // == Table ID
+	TableName string
+}
+
 type Connector interface {
-	// TODO support multiple tables
-	GetPrice(locationID, microcategoryID uint64) (uint64, error)
+	GetPrice(locationID, microcategoryID uint64, tableName string) (uint64, error)
+
+	GetTablesInOrder(userID uint64) ([]SegmentAndTable, error)
 }
 
-type NoResultError struct{}
-
-func (e *NoResultError) Error() string {
-	return "invalid request"
-}
+var NoResult = errors.New("invalid request")

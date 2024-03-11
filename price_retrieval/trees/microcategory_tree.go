@@ -51,7 +51,9 @@ func BuildCategoryTreeFromFile(filename string) (*CategoryNode, error) {
 	}(file)
 
 	var categories []JSONCategory
-	if err := json.NewDecoder(file).Decode(&categories); err != nil {
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&categories); err != nil {
 		return nil, err
 	}
 

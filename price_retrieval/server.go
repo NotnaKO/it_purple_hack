@@ -48,18 +48,11 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 
 	// Вызываем функцию roadUpSearch для получения цены с помощью алгоритма RoadUpSearch
 	retriever := Retriever{h.connector}
-	price, err := retriever.Search(&info)
+	response, err := retriever.Search(&info)
 	if err != nil {
 		h.logServerError(r, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// Формируем ответ в формате JSON
-	response := struct {
-		Price float64 `json:"price"`
-	}{
-		Price: float64(price) / 100,
 	}
 
 	// Отправляем ответ
@@ -101,8 +94,9 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 
 var configPath = flag.String("config_path", "",
 	"Path to the retrieval file .yaml file which contains server_port, price_management_host, "+
-		"price_management_port, redis_host, redis_password, redis_db, locations_tree, category_tree. "+
-		"Location tree and Category tree should be json file")
+		"price_management_port, redis_host, redis_password, redis_db, locations_tree, category_tree,"+
+		" segments, db_name_path(Path to data base table and their IDs map). "+
+		"Location tree, category tree, segments, db_name_path should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
@@ -126,6 +120,18 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	err = connector.LoadSegmentsByUserMap(config.Segments)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	err = connector.LoadTableNameByID(config.DBNamePath)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Info("Config load successfully")
 
 	handler := NewHandler()
 

@@ -13,7 +13,6 @@ type Retriever struct {
 type searchRequest struct {
 	location *trees.LocationNode
 	category *trees.CategoryNode
-	userID   uint64
 }
 
 type SearchResponse struct {
@@ -24,20 +23,36 @@ type SearchResponse struct {
 	userID          uint64
 }
 
+var NotFound = errors.New("no prices for this request has found")
+
 // Search Возвращает цену в копейках
-func (r *Retriever) Search(info *ConnectionInfo) (uint64, error) {
+func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 	location := trees.IDToLocationNodeMap[info.LocationID]
 	category := trees.IDToCategoryNodeMap[info.MicrocategoryID]
 	if location == nil || category == nil {
-		return 0, NoSuchCategoryAndLocation
+		return SearchResponse{}, NoSuchCategoryAndLocation
 	}
 
 	request := searchRequest{
 		location: location,
 		category: category,
-		userID:   info.UserID,
 	}
-	return r.search(request, request)
+	segmentWithTable, err := r.connector.GetTablesInOrder(info.UserID)
+	if err != nil {
+		return SearchResponse{}, err
+	}
+	for _, segmentAndTable := range segmentWithTable {
+		response, err := r.search(request, request, segmentAndTable.TableName)
+		if errors.Is(err, connector.NoResult) {
+			continue
+		}
+		if err != nil {
+			return SearchResponse{}, err
+		}
+		response.userID = info.UserID
+		response.discountSegment = segmentAndTable.Segment
+	}
+	return SearchResponse{}, NotFound
 }
 
 var NoSuchCategoryAndLocation = errors.New("no such category and location")
@@ -52,18 +67,22 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 	return request, NoSuchCategoryAndLocation
 }
 
-func (r *Retriever) search(request searchRequest, firstRequest searchRequest) (uint64, error) {
-	// TODO add discount tables
-	price, err := r.connector.GetPrice(request.location.ID, request.category.ID)
-	if errors.Is(err, &connector.NoResultError{}) {
+func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableName string) (SearchResponse, error) {
+	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableName)
+	if errors.Is(err, connector.NoResult) {
 		nextRequest, err := next(request, firstRequest)
 		if err != nil {
-			return 0, err
+			return SearchResponse{}, err
 		}
-		return r.search(nextRequest, firstRequest) // TODO: no recursion
+		return r.search(nextRequest, firstRequest, tableName) // TODO: no recursion
 	}
 	if err != nil {
-		return 0, err
+		return SearchResponse{}, err
 	}
-	return price, nil
+	response := SearchResponse{
+		location: request.location,
+		category: request.category,
+		price:    price,
+	}
+	return response, nil
 }

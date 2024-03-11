@@ -15,6 +15,8 @@ type Config struct {
 	RedisDB             int    `yaml:"redis_db"`
 	LocationTree        string `yaml:"location_tree"`
 	CategoryTree        string `yaml:"category_tree"`
+	Segments            string `yaml:"segments"`
+	DBNamePath          string `yaml:"db_name_path"`
 }
 
 func loadConfig(path string) (Config, error) {
