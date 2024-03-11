@@ -29,7 +29,7 @@ WARNING: this algorithm assume that baseline tables have names as baseline_matri
 */
 func (c *PriceManagerConnector) GetTablesInOrder(userID uint64) ([]SegmentAndTable, error) {
 	// In this problem we mustn't optimize this by caching
-	segments := GetSegmentsByUserIDs([]uint64{userID})[userID] // todo: add batching
+	segments := discountTablesByUserID[userID]
 	answer := make([]SegmentAndTable, len(segments))
 	for i, item := range segments {
 		answer[i] = SegmentAndTable{
@@ -40,6 +40,7 @@ func (c *PriceManagerConnector) GetTablesInOrder(userID uint64) ([]SegmentAndTab
 	slices.SortFunc(answer, func(a, b SegmentAndTable) int {
 		return -cmp.Compare(a.TableName, b.TableName)
 	})
+	answer = append(answer, baselineTables...)
 	// Sort by inverse alphabetic order,
 	// so discount with the higher than others and discount higher than baseline
 	return answer, nil

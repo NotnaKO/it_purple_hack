@@ -1,8 +1,10 @@
 package connector
 
 import (
+	"cmp"
 	"encoding/json"
 	"os"
+	"slices"
 )
 
 type userAndSegments struct {
@@ -22,58 +24,45 @@ func LoadSegmentsByUserMap(path string) error {
 	if err != nil {
 		return err
 	}
-	segmentsByUserID = make(map[uint64][]uint64, len(data))
+	discountTablesByUserID = make(map[uint64][]uint64, len(data))
 	for _, item := range data {
-		segmentsByUserID[item.UserID] = item.Segments
+		discountTablesByUserID[item.UserID] = item.Segments
 	}
 	return nil
 }
 
-var segmentsByUserID map[uint64][]uint64
-
-func GetSegmentsByUserIDs(userIDs []uint64) map[uint64][]uint64 {
-	result := make(map[uint64][]uint64, len(userIDs))
-
-	for _, userID := range userIDs {
-		userIdResult := segmentsByUserID[userID]
-		for i := range baseTableName {
-			userIdResult = append(userIdResult, i)
-		}
-		result[userID] = userIdResult
-	}
-	return result
-}
+var discountTablesByUserID map[uint64][]uint64
 
 var tableNameByID map[uint64]string
-var baseTableName map[uint64]string
+var baselineTables []SegmentAndTable
 
 type tableAndID struct {
 	TableName string `json:"name"`
 	ID        uint64 `json:"id"`
 }
 
-func LoadTableNameByID(path string, fl bool) error {
+func LoadTableNameByID(path string, is_discount_load bool) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	var data []tableAndID
+	var data []SegmentAndTable
 	decoder := json.NewDecoder(file)
 	decoder.DisallowUnknownFields()
 	err = decoder.Decode(&data)
 	if err != nil {
 		return err
 	}
-	if fl {
+	if is_discount_load {
 		tableNameByID = make(map[uint64]string, len(data))
 		for _, item := range data {
-			tableNameByID[item.ID] = item.TableName
+			tableNameByID[item.Segment] = item.TableName
 		}
 	} else {
-		baseTableName = make(map[uint64]string, len(data))
-		for _, item := range data {
-			baseTableName[item.ID] = item.TableName
-		}
+		baselineTables = data
+		slices.SortFunc(baselineTables, func(a, b SegmentAndTable) int {
+			return -cmp.Compare(a.TableName, b.TableName)
+		})
 	}
 	return nil
 }

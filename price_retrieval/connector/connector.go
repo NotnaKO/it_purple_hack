@@ -3,8 +3,8 @@ package connector
 import "errors"
 
 type SegmentAndTable struct {
-	Segment   uint64 // == Table ID
-	TableName string
+	Segment   uint64 `json:"id"` // == Table ID
+	TableName string `json:"name"`
 }
 
 type Connector interface {
