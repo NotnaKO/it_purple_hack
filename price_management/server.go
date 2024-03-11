@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -114,12 +116,15 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
-	user := os.Args[2]
-	password := os.Args[3]
-	host := os.Args[4]
-	dbname := os.Args[5]
-	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", user, password, host, dbname))
+	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
+		config.PostgresqlUser, config.Password, config.PostgresqlHost, config.Dbname))
 }
+
+var configPath = flag.String("config_path", "",
+	"Path to the retrieval file .yaml file which contains server_port, postgresql_user "+
+		"password, postgresql_host, dbname, db_path_name. db_path_name should be json file")
+var config Config
+var NoConfig = errors.New("you should set config file. Use --help to information")
 
 func ParseTableIdJson(filename string) (map[uint64]string, error) {
 	file, err := os.Open(filename)
@@ -149,9 +154,14 @@ func ParseTableIdJson(filename string) (map[uint64]string, error) {
 }
 
 func main() {
-	if len(os.Args) != 7 {
-		fmt.Println("Usage: ./price_management [server_port] [postgresql_user] [password] [postgresql_host] [dbname] [data_base_json]")
-		return
+	flag.Parse()
+	if *configPath == "" {
+		logrus.Fatal(NoConfig)
+	}
+	err := error(nil)
+	config, err = loadConfig(*configPath)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
 	logger := logrus.New()
@@ -171,7 +181,7 @@ func main() {
 		}
 	}(db)
 
-	priceManager, err := NewPriceManagementService(db, os.Args[6])
+	priceManager, err := NewPriceManagementService(db, config.DbPathName)
 	if err != nil {
 		logger.Fatal(err)
 		return
@@ -181,17 +191,14 @@ func main() {
 	http.HandleFunc("/set_price", handler.SetPrice)
 	// TODO kubernetes. right now leave only one port
 	go func() {
-		port := os.Args[1]
+		port := strconv.Itoa(int(config.ServerPort))
 		fmt.Printf("Price Management Service is listening on port %s...\n", port)
-		http.ListenAndServe(":"+port, nil)
+		err := http.ListenAndServe(":"+port, nil)
+		if err != nil {
+			logger.Fatal(err)
+			return
+		}
 	}()
 
 	select {}
 }
-
-/*
-right now request:
-need config
-go build
-./price_management 5432 postgres 1234 localhost price_management data/data_base.json
-*/

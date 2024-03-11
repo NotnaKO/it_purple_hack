@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -23,8 +25,11 @@ func NewHandler() *Handler {
 	logger.SetLevel(logrus.InfoLevel) // Set log level to info
 
 	return &Handler{
-		logger:    logger,
-		connector: NewPriceManagerConnector(os.Args[2], os.Args[3]),
+		logger: logger,
+		connector: NewPriceManagerConnector(
+			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
+			config.RedisHost, config.RedisPassword, config.RedisDB,
+		),
 	}
 }
 
@@ -57,7 +62,11 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 
 	// Отправляем ответ
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// Log request details
 	h.logRequest(r, startTime)
@@ -88,26 +97,42 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 	}).Error("Internal Server Error")
 }
 
+var configPath = flag.String("config_path", "",
+	"Path to the retrieval file .yaml file which contains server_port, price_management_host, "+
+		"price_management_port, redis_host, redis_password, redis_db, locations_tree, category_tree. "+
+		"Location tree and Category tree should be json file")
+var config Config
+var NoConfig = errors.New("you should set config file. Use --help to information")
+
 func main() {
-	if len(os.Args) != 6 {
-		fmt.Println("Usage: ./price_retrieval [server_port] [price_management_host] [price_management_port] [locations_tree.json] [category_tree.json]")
-		return
+	flag.Parse()
+	if *configPath == "" {
+		logrus.Fatal(NoConfig)
+	}
+	err := error(nil)
+	config, err = loadConfig(*configPath)
+	if err != nil {
+		logrus.Fatal(err)
 	}
 
-	locationTreeJson := os.Args[4]
-	BuildLocationTreeFromFile(locationTreeJson)
+	_, err = BuildLocationTreeFromFile(config.LocationTree)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
-	categoryTreeJson := os.Args[5]
-	BuildCategoryTreeFromFile(categoryTreeJson)
+	_, err = BuildCategoryTreeFromFile(config.CategoryTree)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	handler := NewHandler()
 
 	http.HandleFunc("/retrieve", handler.PriceRetrievalService)
 
 	go func() {
-		port := os.Args[1]
+		port := strconv.Itoa(int(config.ServerPort))
 		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
-		log.Fatal(http.ListenAndServe(":"+port, nil))
+		logrus.Fatal(http.ListenAndServe(":"+port, nil))
 	}()
 
 	select {}

@@ -8,9 +8,9 @@ import aiohttp
 async def send_request(session, base_url):
     start_time = time.time()
     
-    location_id = random.randint(1, 10)  # Replace 10 with the maximum location_id value
-    microcategory_id = random.randint(1, 10)  # Replace 10 with the maximum microcategory_id value
-    user_id = random.randint(1, 100)  # Replace 100 with the maximum user_id value
+    location_id = random.randint(1, 1000)
+    microcategory_id = random.randint(1, 1000)
+    user_id = random.randint(1, 3000)
 
     params = {
         'location_id': location_id,

@@ -6,9 +6,27 @@
 `/retrieve`:
 по `location_id`, `microcategory_id`, `user_id` ищет цену для данного пользователя.
 
-### Сборка и запуск
+Помощь
+
 ```bash
-go build && go run .
+go build
+./price_retrieval --help
+```
+
+### Сборка и запуск
+Нужно скачать `redis`, запустить через `systemctl` `redis.service`.
+
+```bash
+sudo apt-get install redis
+sudo systemctl enable redis
+sudo systemctl start redis
+```
+
+В файле `/etc/redis/redis.conf` есть строчка `port [port_num]` с портом `redis` сервиса. Его нужно добавить в `../config/price_retrieval.yaml`
+
+```bash
+go build
+./price_retrieval -config_path=../config/price_retrieval.yaml
 ```
 
 ### Пример запроса

@@ -32,10 +32,17 @@ CREATE TABLE price_matrix (
 );
 ```
 
+Помощь
+
+```bash
+go build
+./price_management --help
+```
+
 Сборка и запуск
 ```bash
 go build
-./price_management postgres [password] localhost price_management
+./price_management -config_path=../config/price_management.yaml
 ```
 
 ## Примеры запросов
