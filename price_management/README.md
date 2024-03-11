@@ -48,7 +48,7 @@ go build
 ## Примеры запросов
 ### Set price
 ```bash
-curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id&price=12.99"
+curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
 ```
 
 ### Get price
