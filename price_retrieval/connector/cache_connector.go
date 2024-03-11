@@ -2,14 +2,12 @@ package connector
 
 import (
 	"bytes"
-	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -30,19 +28,9 @@ WARNING: this algorithm assume that baseline tables have names as baseline_matri
 func (c *PriceManagerConnector) GetTablesInOrder(userID uint64) ([]SegmentAndTable, error) {
 	// In this problem we mustn't optimize this by caching
 	segments := discountTablesByUserID[userID]
-	answer := make([]SegmentAndTable, len(segments))
-	for i, item := range segments {
-		answer[i] = SegmentAndTable{
-			Segment:   item,
-			TableName: tableNameByID[item],
-		}
-	}
-	slices.SortFunc(answer, func(a, b SegmentAndTable) int {
-		return -cmp.Compare(a.TableName, b.TableName)
-	})
+	answer := make([]SegmentAndTable, 0, len(segments)+len(baselineTables))
+	answer = append(answer, segments...)
 	answer = append(answer, baselineTables...)
-	// Sort by inverse alphabetic order,
-	// so discount with the higher than others and discount higher than baseline
 	return answer, nil
 }
 
@@ -77,13 +65,13 @@ func (c *PriceManagerConnector) GetPrice(locationID, microCategoryID, tableID ui
 }
 
 func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locationID,
-	microcategoryID, tableID uint64) (uint64, error) {
+	microCategoryID, tableID uint64) (uint64, error) {
 	logrus.Debug("Request from manager: ", fmt.Sprintf(
 		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&data_base_id=%d",
-		c.pmHost, c.pmPort, locationID, microcategoryID, tableID))
+		c.pmHost, c.pmPort, locationID, microCategoryID, tableID))
 	url := fmt.Sprintf(
 		"http://%s:%s/get_price?location_id=%d&microcategory_id=%d&data_base_id=%d",
-		c.pmHost, c.pmPort, locationID, microcategoryID, tableID)
+		c.pmHost, c.pmPort, locationID, microCategoryID, tableID)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -122,7 +110,7 @@ func (c *PriceManagerConnector) fetchPriceFromManager(ctx context.Context, locat
 	}
 
 	// Store the fetched price in the cache
-	err = c.setPriceInCache(ctx, locationID, microcategoryID, tableID, data.Price)
+	err = c.setPriceInCache(ctx, locationID, microCategoryID, tableID, data.Price)
 	if err != nil {
 		logrus.Error("Error setting price in cache:", err)
 	}

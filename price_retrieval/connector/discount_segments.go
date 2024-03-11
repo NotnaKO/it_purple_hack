@@ -3,6 +3,7 @@ package connector
 import (
 	"cmp"
 	"encoding/json"
+	"errors"
 	"os"
 	"slices"
 )
@@ -13,6 +14,9 @@ type userAndSegments struct {
 }
 
 func LoadSegmentsByUserMap(path string) error {
+	if tableNameByID == nil {
+		return errors.New("load tableNameByID before SegmentsByUser")
+	}
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -24,24 +28,29 @@ func LoadSegmentsByUserMap(path string) error {
 	if err != nil {
 		return err
 	}
-	discountTablesByUserID = make(map[uint64][]uint64, len(data))
+	discountTablesByUserID = make(map[uint64][]SegmentAndTable, len(data))
 	for _, item := range data {
-		discountTablesByUserID[item.UserID] = item.Segments
+		currentSegments := make([]SegmentAndTable, len(item.Segments))
+		for i, segment := range item.Segments {
+			currentSegments[i] = SegmentAndTable{
+				Segment:   segment,
+				TableName: tableNameByID[segment],
+			}
+		}
+		slices.SortFunc(currentSegments, func(a, b SegmentAndTable) int {
+			return -cmp.Compare(a.TableName, b.TableName)
+		})
+		discountTablesByUserID[item.UserID] = currentSegments
 	}
 	return nil
 }
 
-var discountTablesByUserID map[uint64][]uint64
+var discountTablesByUserID map[uint64][]SegmentAndTable
 
 var tableNameByID map[uint64]string
 var baselineTables []SegmentAndTable
 
-type tableAndID struct {
-	TableName string `json:"name"`
-	ID        uint64 `json:"id"`
-}
-
-func LoadTableNameByID(path string, is_discount_load bool) error {
+func LoadTableNameByID(path string, isDiscountLoad bool) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -53,7 +62,7 @@ func LoadTableNameByID(path string, is_discount_load bool) error {
 	if err != nil {
 		return err
 	}
-	if is_discount_load {
+	if isDiscountLoad {
 		tableNameByID = make(map[uint64]string, len(data))
 		for _, item := range data {
 			tableNameByID[item.Segment] = item.TableName

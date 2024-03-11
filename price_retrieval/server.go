@@ -123,17 +123,17 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	err = connector.LoadSegmentsByUserMap(config.Segments)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
 	err = connector.LoadTableNameByID(config.DBNamePath, true)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	err = connector.LoadTableNameByID(config.BaseTablePath, false)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	err = connector.LoadSegmentsByUserMap(config.Segments)
 	if err != nil {
 		logrus.Fatal(err)
 	}
