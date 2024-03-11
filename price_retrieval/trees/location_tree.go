@@ -1,8 +1,9 @@
-package main
+package trees
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"slices"
 )
@@ -44,10 +45,17 @@ func BuildLocationTreeFromFile(filename string) (*LocationNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			logrus.Error("Error with closing file:", err)
+		}
+	}(file)
 
 	var locations []JSONLocation
-	if err := json.NewDecoder(file).Decode(&locations); err != nil {
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&locations); err != nil {
 		return nil, err
 	}
 

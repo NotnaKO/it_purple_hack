@@ -1,5 +1,11 @@
 server_port: 7020
 price_management_host: 'localhost'
 price_management_port: 8080
+redis_host: 'localhost:6379'
+redis_password: ''
+redis_db: 0
 location_tree: '../data/locations_tree.json'
 category_tree: '../data/category_tree.json'
+segments: '../data/segments.json'
+db_name_path: '../data/data_bases.json'
+base_table: '../data/base_tables.json'

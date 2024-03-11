@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 // TODO create hot table
@@ -26,7 +27,7 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 
 // SetPrice устанавливает цену для указанных местоположения и микрокатегории
 
-// в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
+// SetPrice в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
 func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	// for debug table id reguest
 	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
@@ -44,16 +45,19 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 // в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
 func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
 	var price uint64
-	val, ok := p.DataBaseById[request.DataBaseID]
+	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
 		return 0, errors.New("no exist table with that data_base_id")
 	}
-	// for debug table id
-	// fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseId])
-	err := p.db.QueryRow(fmt.Sprintf("SELECT price FROM %s", val)+"WHERE location_id=$1 AND microcategory_id=$2",
+	logrus.Debug(fmt.Sprintf("SELECT price FROM %s WHERE location_id=%d AND microcategory_id=%d\n",
+		fmt.Sprintf("%s.%s", config.DBSchema, tableName), request.LocationID, request.MicrocategoryID))
+	err := p.db.QueryRow(fmt.Sprintf("SELECT price FROM %s ",
+		fmt.Sprintf("%s.%s", config.DBSchema, tableName))+
+		"WHERE location_id=$1 AND microcategory_id=$2",
 		request.LocationID, request.MicrocategoryID).Scan(&price)
 	if err != nil {
 		return 0, err
 	}
+	logrus.Debug("Get price:", price)
 	return price, nil
 }

@@ -17,7 +17,7 @@ import (
 
 type JSONCategory struct {
 	Name string `json:"name"`
-	Id   string `json:"id"`
+	Id   uint64 `json:"id"`
 }
 
 type Handler struct {
@@ -116,6 +116,9 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
+	logrus.Info("Connect to database:", fmt.Sprintf(
+		"postgres://%s:%s@%s/%s?sslmode=disable", config.PostgresqlUser,
+		config.Password, config.PostgresqlHost, config.Dbname))
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
 		config.PostgresqlUser, config.Password, config.PostgresqlHost, config.Dbname))
 }
@@ -139,21 +142,20 @@ func ParseTableIdJson(filename string) (map[uint64]string, error) {
 	}(file)
 
 	var tables []JSONCategory
-	if err := json.NewDecoder(file).Decode(&tables); err != nil {
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&tables); err != nil {
 		return nil, err
 	}
 	DataBaseById := make(map[uint64]string)
 	for _, table := range tables {
-		num, err := strconv.ParseUint(table.Id, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		DataBaseById[num] = table.Name
+		DataBaseById[table.Id] = table.Name
 	}
 	return DataBaseById, nil
 }
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
 	if *configPath == "" {
 		logrus.Fatal(NoConfig)
@@ -167,7 +169,7 @@ func main() {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.InfoLevel) // Set log level to info
+	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
 
 	db, err := ConnectToDatabase()
 	if err != nil {
