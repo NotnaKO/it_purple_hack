@@ -3,6 +3,7 @@ package main
 import (
 	"connector"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"trees"
 )
 
@@ -16,11 +17,11 @@ type searchRequest struct {
 }
 
 type SearchResponse struct {
-	location        *trees.LocationNode
-	category        *trees.CategoryNode
-	price           uint64
-	discountSegment uint64
-	userID          uint64
+	Location        uint64 `json:"location"`
+	Category        uint64 `json:"category"`
+	Price           uint64 `json:"price"`
+	DiscountSegment uint64 `json:"tableID"`
+	UserID          uint64 `json:"user_id"`
 }
 
 var NotFound = errors.New("no prices for this request has found")
@@ -44,13 +45,17 @@ func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 	for _, segmentAndTable := range segmentWithTable {
 		response, err := r.search(request, request, segmentAndTable.Segment)
 		if errors.Is(err, connector.NoResult) {
+			logrus.Debug("No result in this table: continue")
 			continue
 		}
 		if err != nil {
+			logrus.Error("Error in search:", err)
 			return SearchResponse{}, err
 		}
-		response.userID = info.UserID
-		response.discountSegment = segmentAndTable.Segment
+		response.UserID = info.UserID
+		response.DiscountSegment = segmentAndTable.Segment
+		logrus.Debug("Return success response:", response)
+		return response, nil
 	}
 	return SearchResponse{}, NotFound
 }
@@ -70,6 +75,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
 	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableID)
 	if errors.Is(err, connector.NoResult) {
+		logrus.Debug("No result from connector")
 		nextRequest, err := next(request, firstRequest)
 		if err != nil {
 			return SearchResponse{}, err
@@ -77,12 +83,14 @@ func (r *Retriever) search(request searchRequest, firstRequest searchRequest, ta
 		return r.search(nextRequest, firstRequest, tableID) // TODO: no recursion
 	}
 	if err != nil {
+		logrus.Error("Error in connector:", err)
 		return SearchResponse{}, err
 	}
+	logrus.Debug("Get price from connector:", price)
 	response := SearchResponse{
-		location: request.location,
-		category: request.category,
-		price:    price,
+		Location: request.location.ID,
+		Category: request.category.ID,
+		Price:    price,
 	}
 	return response, nil
 }
