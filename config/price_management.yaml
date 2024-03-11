@@ -1,6 +1,7 @@
 server_port: 8080
 postgresql_user: 'postgres'
-password: '1234'
+password: 'anton2004'
 postgresql_host: 'localhost'
-dbname: 'matrix'
+dbname: 'postgres'
+db_schema: 'matrix'
 db_path_name: '../data/data_bases.json'

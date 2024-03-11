@@ -116,6 +116,9 @@ func (h *Handler) logServerError(r *http.Request, err error) {
 }
 
 func ConnectToDatabase() (*sql.DB, error) {
+	logrus.Info("Connect to database:", fmt.Sprintf(
+		"postgres://%s:%s@%s/%s?sslmode=disable", config.PostgresqlUser,
+		config.Password, config.PostgresqlHost, config.Dbname))
 	return sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
 		config.PostgresqlUser, config.Password, config.PostgresqlHost, config.Dbname))
 }

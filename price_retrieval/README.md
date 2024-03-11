@@ -31,7 +31,7 @@ go build
 
 ### Пример запроса
 ```bash
-curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'http://localhost:8080/retrieve?location_id=123&microcategory_id=456&user_id=123'
+curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'http://localhost:7020/retrieve?location_id=1&microcategory_id=1&user_id=1'
 ```
 
 ### API

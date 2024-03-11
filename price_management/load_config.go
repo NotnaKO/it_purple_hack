@@ -11,6 +11,7 @@ type Config struct {
 	Password       string `yaml:"password"`
 	PostgresqlHost string `yaml:"postgresql_host"`
 	Dbname         string `yaml:"dbname"`
+	DBSchema       string `yaml:"db_schema"`
 	DbPathName     string `yaml:"db_path_name"`
 }
 
