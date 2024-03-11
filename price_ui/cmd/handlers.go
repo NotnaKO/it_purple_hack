@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 )
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
@@ -45,8 +46,8 @@ func (app *application) handleSimpleRequest(fileName string, path string) func(h
 }
 
 type storage struct {
-	Baseline  string         `json:"baseline"`
-	Discounts map[int]string `json:"discounts"`
+	Baseline  string            `json:"baseline"`
+	Discounts map[string]string `json:"discounts"`
 }
 
 func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +73,40 @@ func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Requ
 	// TODO send request to server
 }
 
+type updater struct {
+	Matrix  string  `json:"update_matrix"`
+	Updates [][]int `json:"updates"`
+}
+
+func (app *application) handleUpdateRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		app.clientError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	var resp updater
+	body, err := ioutil.ReadAll(r.Body)
+	app.errorLog.Println(body)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	} else if err = json.Unmarshal(body, &resp); err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	num, err := strconv.Atoi(resp.Matrix)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	app.infoLog.Printf("Save storage request: %v, %v", num, resp.Updates)
+	w.WriteHeader(http.StatusOK)
+
+	// TODO send request to server
+}
+
 func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
@@ -80,4 +115,32 @@ func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	// TODO send request for metrics
+}
+
+func (app *application) addRequestHandler(w http.ResponseWriter, r *http.Request) {
+	data := r.URL.Query().Get("data")
+	app.infoLog.Println(data)
+
+	// TODO request service
+	// Отправляем ответ в формате JSON с числом 1
+	responseData := struct {
+		Result int `json:"res"`
+	}{1}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(responseData)
+}
+
+func (app *application) getRequestHandler(w http.ResponseWriter, r *http.Request) {
+	data := r.URL.Query().Get("data")
+	app.infoLog.Println("Hi ", data)
+
+	// TODO request service
+	// Отправляем ответ в формате JSON с числом 1
+	responseData := struct {
+		Result int `json:"res"`
+	}{1}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(responseData)
 }
