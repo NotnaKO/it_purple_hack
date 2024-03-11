@@ -7,11 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"io"
 	"net/http"
 	"slices"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/sirupsen/logrus"
 )

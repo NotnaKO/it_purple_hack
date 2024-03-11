@@ -17,6 +17,7 @@ type Config struct {
 	CategoryTree        string `yaml:"category_tree"`
 	Segments            string `yaml:"segments"`
 	DBNamePath          string `yaml:"db_name_path"`
+	BaseTablePath          string `yaml:"base_table"`
 }
 
 func loadConfig(path string) (Config, error) {

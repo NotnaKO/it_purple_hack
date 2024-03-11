@@ -131,6 +131,11 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	err = connector.LoadBaseTable(config.BaseTablePath)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	logrus.Info("Config load successfully")
 
 	handler := NewHandler()

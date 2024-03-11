@@ -35,7 +35,10 @@ func GetSegmentsByUserIDs(userIDs []uint64) map[uint64][]uint64 {
 	result := make(map[uint64][]uint64, len(userIDs))
 
 	for _, userID := range userIDs {
-		result[userID] = segmentByUserID[userID]
+		user_id_result := segmentByUserID[userID]
+		for i := baseTableName {
+			user_id_result := append(user_id_result, i)
+		}
 	}
 	return result
 }
@@ -62,6 +65,27 @@ func LoadTableNameByID(path string) error {
 	tableNameByID = make(map[uint64]string, len(data))
 	for _, item := range data {
 		tableNameByID[item.ID] = item.TableName
+	}
+	return nil
+}
+
+var baseTableName map[uint64]string
+
+func LoadBaseTable(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	var data []tableAndID
+	decoder := json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+	err = decoder.Decode(&data)
+	if err != nil {
+		return err
+	}
+	baseTableName = make(map[uint64]string, len(data))
+	for _, item := range data {
+		baseTableName[item.ID] = item.TableName
 	}
 	return nil
 }
