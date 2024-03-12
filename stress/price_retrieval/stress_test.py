@@ -1,16 +1,17 @@
-import requests
 import random
-import time
+import random
 import sys
-import asyncio
+import time
+
 import aiohttp
+
 
 async def send_request(session, base_url):
     start_time = time.time()
-    
-    location_id = random.randint(1, 1000)
-    microcategory_id = random.randint(1, 1000)
-    user_id = random.randint(1, 3000)
+
+    location_id = random.randint(1, 60)
+    microcategory_id = random.randint(1, 60)
+    user_id = random.randint(1, 300)
 
     params = {
         'location_id': location_id,
