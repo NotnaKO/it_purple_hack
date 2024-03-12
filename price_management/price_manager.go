@@ -31,13 +31,20 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	// for debug table id reguest
 	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
-	val, ok := p.DataBaseById[request.DataBaseID]
+	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
 		return errors.New("no exist table with that data_base_id")
 	}
-	_, err := p.db.Exec(fmt.Sprintf("INSERT INTO %s(location_id, microcategory_id, price) VALUES($1, $2, $3)",
-		val),
-		request.LocationID, request.MicrocategoryID, request.Price)
+	tableNameInRequest := fmt.Sprintf("%s.%s_%d", config.DBSchema, tableName, request.MicroCategoryID/config.MicroCategoryTableSize+1)
+	constraintNameInRequest := fmt.Sprintf("%s_%d", tableName,
+		request.MicroCategoryID/config.MicroCategoryTableSize+1)
+	requestToDB := fmt.Sprintf(
+		"INSERT INTO %s(location_id, microcategory_id, price) VALUES(%d, %d, %d) ON CONFLICT ON CONSTRAINT pk_%s DO UPDATE SET price=%d\n",
+		tableNameInRequest,
+		request.LocationID, request.MicroCategoryID, request.Price,
+		constraintNameInRequest, request.Price)
+	logrus.Debug(requestToDB)
+	_, err := p.db.Exec(requestToDB)
 	return err
 }
 

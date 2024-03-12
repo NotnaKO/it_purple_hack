@@ -46,9 +46,7 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 }
 
 type HttpSetRequestInfo struct {
-	LocationID, MicrocategoryID uint64
-	Price                       float64
-	DataBaseID                  uint64
+	LocationID, MicroCategoryID, Price, DataBaseID uint64
 }
 
 func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
@@ -61,11 +59,11 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 		return HttpSetRequestInfo{}, errors.New("invalid location_id")
 	}
 
-	microcategoryIDStr := r.URL.Query().Get("microcategory_id")
-	if microcategoryIDStr == "" {
+	microCategoryIDStr := r.URL.Query().Get("microcategory_id")
+	if microCategoryIDStr == "" {
 		return HttpSetRequestInfo{}, errors.New("microcategory_id is required")
 	}
-	microcategoryID, err := strconv.ParseUint(microcategoryIDStr, 10, 64)
+	microCategoryID, err := strconv.ParseUint(microCategoryIDStr, 10, 64)
 	if err != nil {
 		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
 	}
@@ -74,7 +72,7 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 	if priceStr == "" {
 		return HttpSetRequestInfo{}, errors.New("price is required")
 	}
-	price, err := strconv.ParseFloat(priceStr, 64)
+	priceInFloat, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
 		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
 	}
@@ -88,9 +86,11 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
 	}
 
+	price := uint64(priceInFloat * 100) // convert float
+
 	return HttpSetRequestInfo{
 		LocationID:      locationID,
-		MicrocategoryID: microcategoryID,
+		MicroCategoryID: microCategoryID,
 		Price:           price,
 		DataBaseID:      dbID,
 	}, nil

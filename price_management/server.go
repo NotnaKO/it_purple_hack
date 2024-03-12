@@ -69,14 +69,14 @@ func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) SetPrice(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
-	set_request, err := NewSetRequest(r)
+	setRequest, err := NewSetRequest(r)
 	if err != nil {
 		h.logRequestError(r, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = h.priceManager.SetPrice(&set_request)
+	err = h.priceManager.SetPrice(&setRequest)
 	if err != nil {
 		h.logServerError(r, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
