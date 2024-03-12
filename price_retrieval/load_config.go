@@ -18,7 +18,6 @@ type Config struct {
 	Segments            string `yaml:"segments"`
 	DBNamePath          string `yaml:"db_name_path"`
 	BaseTablePath       string `yaml:"base_table"`
-	MicroCatTableSz     uint   `yaml:"micro_cat_table_size"`
 }
 
 func loadConfig(path string) (Config, error) {
