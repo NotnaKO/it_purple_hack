@@ -49,12 +49,11 @@ func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
 	if !ok {
 		return 0, errors.New("no exist table with that data_base_id")
 	}
-	logrus.Debug(fmt.Sprintf("SELECT price FROM %s WHERE location_id=%d AND microcategory_id=%d\n",
-		fmt.Sprintf("%s.%s", config.DBSchema, tableName), request.LocationID, request.MicrocategoryID))
-	err := p.db.QueryRow(fmt.Sprintf("SELECT price FROM %s ",
-		fmt.Sprintf("%s.%s", config.DBSchema, tableName))+
-		"WHERE location_id=$1 AND microcategory_id=$2",
-		request.LocationID, request.MicrocategoryID).Scan(&price)
+	requestToDB := fmt.Sprintf("SELECT price FROM %s_%d WHERE location_id=%d AND microcategory_id=%d\n",
+		fmt.Sprintf("%s.%s", config.DBSchema, tableName),
+		request.MicrocategoryID/config.MicroCategoryTableSize+1, request.LocationID, request.MicrocategoryID)
+	logrus.Debug(requestToDB)
+	err := p.db.QueryRow(requestToDB).Scan(&price)
 	if err != nil {
 		return 0, err
 	}

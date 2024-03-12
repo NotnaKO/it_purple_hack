@@ -6,13 +6,14 @@ import (
 )
 
 type Config struct {
-	ServerPort     uint   `yaml:"server_port"`
-	PostgresqlUser string `yaml:"postgresql_user"`
-	Password       string `yaml:"password"`
-	PostgresqlHost string `yaml:"postgresql_host"`
-	Dbname         string `yaml:"dbname"`
-	DBSchema       string `yaml:"db_schema"`
-	DbPathName     string `yaml:"db_path_name"`
+	ServerPort             uint   `yaml:"server_port"`
+	PostgresqlUser         string `yaml:"postgresql_user"`
+	Password               string `yaml:"password"`
+	PostgresqlHost         string `yaml:"postgresql_host"`
+	Dbname                 string `yaml:"dbname"`
+	DBSchema               string `yaml:"db_schema"`
+	DbPathName             string `yaml:"db_path_name"`
+	MicroCategoryTableSize uint64 `yaml:"micro_cat_table_size"`
 }
 
 func loadConfig(path string) (Config, error) {

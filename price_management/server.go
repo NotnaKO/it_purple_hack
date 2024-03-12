@@ -125,7 +125,7 @@ func ConnectToDatabase() (*sql.DB, error) {
 
 var configPath = flag.String("config_path", "",
 	"Path to the retrieval file .yaml file which contains server_port, postgresql_user "+
-		"password, postgresql_host, dbname, db_path_name. db_path_name should be json file")
+		"password, postgresql_host, dbname, db_path_name and table_size. db_path_name should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
