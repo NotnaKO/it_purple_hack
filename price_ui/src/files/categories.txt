@@ -1,0 +1,61 @@
+ ID: 1, Category: ROOT
+-  ID: 2, Category: Бытовая электроника
+- -  ID: 3, Category: Товары для компьютера
+- -  ID: 4, Category: Фототехника
+- -  ID: 5, Category: Телефоны
+- -  ID: 6, Category: Планшеты и электронные книги
+- -  ID: 7, Category: Оргтехника и расходники
+- -  ID: 8, Category: Ноутбуки
+- -  ID: 9, Category: Настольные компьютеры
+- -  ID: 10, Category: Игры, приставки и программы
+- -  ID: 11, Category: Аудио и видео
+-  ID: 12, Category: Готовый бизнес и оборудование
+- -  ID: 13, Category: Готовый бизнес
+- -  ID: 14, Category: Оборудование для бизнеса
+-  ID: 15, Category: Для дома и дачи
+- -  ID: 16, Category: Мебель и интерьер
+- -  ID: 17, Category: Ремонт и строительство
+- -  ID: 18, Category: Продукты питания
+- -  ID: 19, Category: Растения
+- -  ID: 20, Category: Бытовая техника
+- -  ID: 21, Category: Посуда и товары для кухни
+-  ID: 22, Category: Животные
+- -  ID: 23, Category: Другие животные
+- -  ID: 24, Category: Товары для животных
+- -  ID: 25, Category: Птицы
+- -  ID: 26, Category: Аквариум
+- -  ID: 27, Category: Кошки
+- -  ID: 28, Category: Собаки
+-  ID: 29, Category: Личные вещи
+- -  ID: 30, Category: Детская одежда и обувь
+- -  ID: 31, Category: Одежда, обувь, аксессуары
+- -  ID: 32, Category: Товары для детей и игрушки
+- -  ID: 33, Category: Часы и украшения
+- -  ID: 34, Category: Красота и здоровье
+-  ID: 35, Category: Недвижимость
+- -  ID: 36, Category: Недвижимость за рубежом
+- -  ID: 37, Category: Квартиры
+- -  ID: 38, Category: Коммерческая недвижимость
+- -  ID: 39, Category: Гаражи и машиноместа
+- -  ID: 40, Category: Земельные участки
+- -  ID: 41, Category: Дома, дачи, коттеджи
+- -  ID: 42, Category: Комнаты
+-  ID: 43, Category: Работа
+- -  ID: 44, Category: Резюме
+- -  ID: 45, Category: Вакансии
+-  ID: 46, Category: Транспорт
+- -  ID: 47, Category: Автомобили
+- -  ID: 48, Category: Запчасти и аксессуары
+- -  ID: 49, Category: Грузовики и спецтехника
+- -  ID: 50, Category: Водный транспорт
+- -  ID: 51, Category: Мотоциклы и мототехника
+-  ID: 52, Category: Услуги
+- -  ID: 53, Category: Предложения услуг
+-  ID: 54, Category: Хобби и отдых
+- -  ID: 55, Category: Охота и рыбалка
+- -  ID: 56, Category: Спорт и отдых
+- -  ID: 57, Category: Коллекционирование
+- -  ID: 58, Category: Книги и журналы
+- -  ID: 59, Category: Велосипеды
+- -  ID: 60, Category: Музыкальные инструменты
+- -  ID: 61, Category: Билеты и путешествия
