@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -101,6 +102,8 @@ var configPath = flag.String("config_path", "",
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
+const LRUCacheSize = 10000
+
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
@@ -139,6 +142,13 @@ func main() {
 	}
 
 	logrus.Info("Config load successfully")
+
+	LRUCache, err = lru.New2Q[CacheKey, CacheValue](LRUCacheSize)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Info("Cache initialized successfully")
 
 	handler := NewHandler()
 

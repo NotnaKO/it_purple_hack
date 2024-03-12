@@ -3,6 +3,7 @@ package main
 import (
 	"connector"
 	"errors"
+	"github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 	"trees"
 )
@@ -55,7 +56,7 @@ func (r *Retriever) Search(info *ConnectionInfo) (SearchResponse, error) {
 		}
 		response.UserID = info.UserID
 		response.DiscountSegment = segmentAndTable.Segment
-		logrus.Debug("Return success response:", response)
+		logrus.Debugf("Return success response: %+v", response)
 		return response, nil
 	}
 	return SearchResponse{}, NotFound
@@ -73,7 +74,41 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 	return request, NoSuchCategoryAndLocation
 }
 
+var LRUCache *lru.TwoQueueCache[CacheKey, CacheValue]
+
+type CacheKey struct {
+	searchRequest
+	tableID uint64
+}
+
+type CacheValue struct {
+	resp SearchResponse
+	err  error
+}
+
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
+	key := CacheKey{
+		searchRequest: request,
+		tableID:       tableID,
+	}
+	if value, ok := LRUCache.Get(key); ok {
+		logrus.Debugf("Answer found in LRU cache: %+v", value)
+		if value.err != nil {
+			return SearchResponse{}, value.err
+		} else {
+			return value.resp, nil
+		}
+	}
+	logrus.Debug("Answer not found in LRU cache, go to search implementation")
+	response, err := r.searchImpl(request, firstRequest, tableID)
+	LRUCache.Add(key, CacheValue{
+		resp: response,
+		err:  err,
+	})
+	return response, err
+}
+
+func (r *Retriever) searchImpl(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
 	price, err := r.connector.GetPrice(request.location.ID, request.category.ID, tableID)
 
 	if errors.Is(err, connector.NoResult) {
