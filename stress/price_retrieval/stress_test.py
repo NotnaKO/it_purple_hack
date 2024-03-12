@@ -9,7 +9,7 @@ import aiohttp
 async def send_request(session, base_url):
     start_time = time.time()
 
-    location_id = random.randint(1, 60)
+    location_id = random.randint(1, 4000)
     microcategory_id = random.randint(1, 60)
     user_id = random.randint(1, 300)
 

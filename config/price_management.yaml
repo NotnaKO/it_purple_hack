@@ -5,6 +5,6 @@ postgresql_host: 'localhost'
 dbname: 'postgres'
 db_schema: 'matrix'
 db_path_name: '../data/data_bases.json'
-table_partition_size: 1
+table_partition_size: 7
 data_generation_dir_path: '../data_base_generation'
 categories_count: 61
