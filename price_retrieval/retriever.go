@@ -132,10 +132,6 @@ func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheV
 		return CacheValue{SearchResponse{}, err}, true
 	}
 
-	// if err := cacheValue.UnmarshalBinary([]byte(val)); err != nil {
-	// 	return CacheValue{SearchResponse{}, err}, true
-	// }
-
 	return cacheValue, true
 }
 
