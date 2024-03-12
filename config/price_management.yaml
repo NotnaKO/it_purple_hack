@@ -1,8 +1,10 @@
 server_port: 8080
 postgresql_user: 'postgres'
-password: '1234'
+password: 'anton2004'
 postgresql_host: 'localhost'
 dbname: 'postgres'
 db_schema: 'matrix'
 db_path_name: '../data/data_bases.json'
-micro_cat_table_size: 6
+table_partition_size: 1
+data_generation_dir_path: '../data_base_generation'
+categories_count: 61

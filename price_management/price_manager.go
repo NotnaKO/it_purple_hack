@@ -35,9 +35,9 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	if !ok {
 		return errors.New("no exist table with that data_base_id")
 	}
-	tableNameInRequest := fmt.Sprintf("%s.%s_%d", config.DBSchema, tableName, request.MicroCategoryID/config.MicroCategoryTableSize+1)
+	tableNameInRequest := fmt.Sprintf("%s.%s_%d", config.DBSchema, tableName, request.MicroCategoryID/config.TablePartitionSize+1)
 	constraintNameInRequest := fmt.Sprintf("%s_%d", tableName,
-		request.MicroCategoryID/config.MicroCategoryTableSize+1)
+		request.MicroCategoryID/config.TablePartitionSize+1)
 	requestToDB := fmt.Sprintf(
 		"INSERT INTO %s(location_id, microcategory_id, price) VALUES(%d, %d, %d) ON CONFLICT ON CONSTRAINT pk_%s DO UPDATE SET price=%d\n",
 		tableNameInRequest,
@@ -58,7 +58,7 @@ func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
 	}
 	requestToDB := fmt.Sprintf("SELECT price FROM %s_%d WHERE location_id=%d AND microcategory_id=%d\n",
 		fmt.Sprintf("%s.%s", config.DBSchema, tableName),
-		request.MicrocategoryID/config.MicroCategoryTableSize+1, request.LocationID, request.MicrocategoryID)
+		request.MicrocategoryID/config.TablePartitionSize+1, request.LocationID, request.MicrocategoryID)
 	logrus.Debug(requestToDB)
 	err := p.db.QueryRow(requestToDB).Scan(&price)
 	if err != nil {

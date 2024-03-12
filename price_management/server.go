@@ -124,8 +124,7 @@ func ConnectToDatabase() (*sql.DB, error) {
 }
 
 var configPath = flag.String("config_path", "",
-	"Path to the retrieval file .yaml file which contains server_port, postgresql_user "+
-		"password, postgresql_host, dbname, db_path_name and table_size. db_path_name should be json file")
+	"Path to the retrieval file .yaml file which contains all field of config. db_path_name should be json file")
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
@@ -166,28 +165,34 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
-
 	db, err := ConnectToDatabase()
 	if err != nil {
-		logger.Fatal(err)
-		return
+		logrus.Fatal(err)
 	}
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
-			logger.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}(db)
 
 	priceManager, err := NewPriceManagementService(db, config.DbPathName)
 	if err != nil {
-		logger.Fatal(err)
-		return
+		logrus.Fatal(err)
 	}
+
+	err = priceManager.loadDB()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	// Now we are ready to start
+
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
+
 	handler := NewHandler(priceManager, logger)
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
@@ -198,7 +203,6 @@ func main() {
 		err := http.ListenAndServe(":"+port, nil)
 		if err != nil {
 			logger.Fatal(err)
-			return
 		}
 	}()
 
