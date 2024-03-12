@@ -6,12 +6,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	lru "github.com/hashicorp/golang-lru/v2"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 	"trees"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +32,6 @@ func NewHandler() *Handler {
 		logger: logger,
 		connector: connector.NewPriceManagerConnector(
 			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
-			config.RedisHost, config.RedisPassword, config.RedisDB,
 		),
 	}
 }
@@ -102,8 +102,6 @@ var configPath = flag.String("config_path", "",
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
-const LRUCacheSize = 10000
-
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
@@ -143,10 +141,11 @@ func main() {
 
 	logrus.Info("Config load successfully")
 
-	LRUCache, err = lru.New2Q[CacheKey, CacheValue](LRUCacheSize)
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr:     config.RedisHost,
+		Password: config.RedisPassword,
+		DB:       config.RedisDB,
+	})
 
 	logrus.Info("Cache initialized successfully")
 

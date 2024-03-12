@@ -2,10 +2,14 @@ package main
 
 import (
 	"connector"
+	"context"
+	"encoding/json"
 	"errors"
-	"github.com/hashicorp/golang-lru/v2"
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"trees"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/sirupsen/logrus"
 )
 
 type Retriever struct {
@@ -74,7 +78,7 @@ func next(request searchRequest, first searchRequest) (searchRequest, error) {
 	return request, NoSuchCategoryAndLocation
 }
 
-var LRUCache *lru.TwoQueueCache[CacheKey, CacheValue]
+var RedisClient *redis.Client
 
 type CacheKey struct {
 	searchRequest
@@ -86,25 +90,63 @@ type CacheValue struct {
 	err  error
 }
 
+func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheValue, bool) {
+	searchString := fmt.Sprint("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
+	logrus.Debug(searchString)
+
+	var value CacheValue
+	err := RedisClient.Get(ctx, searchString).Scan(&value)
+	if errors.Is(err, redis.Nil) {
+		return CacheValue{}, false
+	} else if err != nil {
+		return CacheValue{SearchResponse{}, err}, true
+	}
+	return value, true
+}
+
+func (r *Retriever) setPriceInCache(ctx context.Context, key CacheKey, value CacheValue) error {
+	valueJSON, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
+	logrus.Debug(searchString)
+
+	err = RedisClient.Set(ctx, searchString, string(valueJSON), 0).Err()
+	if err != nil {
+		return fmt.Errorf("error setting cache value in Redis: %v", err)
+	}
+
+	return nil
+}
+
 func (r *Retriever) search(request searchRequest, firstRequest searchRequest, tableID uint64) (SearchResponse, error) {
 	key := CacheKey{
 		searchRequest: request,
 		tableID:       tableID,
 	}
-	if value, ok := LRUCache.Get(key); ok {
-		logrus.Debugf("Answer found in LRU cache: %+v", value)
+
+	ctx := context.Background()
+	if value, ok := r.getPriceFromCache(ctx, key); ok {
+		logrus.Debugf("Answer found in cache: %+v", value)
 		if value.err != nil {
 			return SearchResponse{}, value.err
 		} else {
 			return value.resp, nil
 		}
 	}
-	logrus.Debug("Answer not found in LRU cache, go to search implementation")
+	logrus.Debug("Answer not found in cache, go to search implementation")
 	response, err := r.searchImpl(request, firstRequest, tableID)
-	LRUCache.Add(key, CacheValue{
+
+	err = r.setPriceInCache(ctx, key, CacheValue{
 		resp: response,
 		err:  err,
 	})
+	if err != nil {
+		logrus.Error("Error in setting to cache")
+		return SearchResponse{}, err
+	}
 	return response, err
 }
 
