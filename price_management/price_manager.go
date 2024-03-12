@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,14 +30,15 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 
 // SetPrice в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
 func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
-	// for debug table id reguest
-	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
-	val, ok := p.DataBaseById[request.DataBaseID]
+	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
 		return errors.New("no exist table with that data_base_id")
 	}
-	_, err := p.db.Exec(fmt.Sprintf("INSERT INTO %s(location_id, microcategory_id, price) VALUES($1, $2, $3)",
-		val),
+
+	logrus.Debug(fmt.Sprintf("INSERT INTO %s.%s ",
+		config.DBSchema, tableName) + "(location_id, microcategory_id, price) VALUES($1, $2, $3)")
+	_, err := p.db.Exec(fmt.Sprintf("INSERT INTO %s.%s ",
+		config.DBSchema, tableName)+"(location_id, microcategory_id, price) VALUES($1, $2, $3)",
 		request.LocationID, request.MicrocategoryID, request.Price)
 	return err
 }
