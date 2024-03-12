@@ -90,30 +90,61 @@ type CacheValue struct {
 	err  error
 }
 
+func (cv *CacheValue) MarshalBinary() ([]byte, error) {
+	data := make(map[string]interface{})
+
+	respBytes, err := json.Marshal(cv.resp)
+	if err != nil {
+		return nil, err
+	}
+	data["resp"] = json.RawMessage(respBytes)
+	data["err"] = cv.err
+
+	return json.Marshal(data)
+}
+
+func (cv *CacheValue) UnmarshalBinary(data []byte) error {
+	var decoded map[string]json.RawMessage
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(decoded["resp"], &cv.resp); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(decoded["err"], &cv.err); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheValue, bool) {
-	searchString := fmt.Sprint("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
+	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
 	logrus.Debug(searchString)
 
-	var value CacheValue
-	err := RedisClient.Get(ctx, searchString).Scan(&value)
+	var cacheValue CacheValue
+	err := RedisClient.Get(ctx, searchString).Scan(&cacheValue)
 	if errors.Is(err, redis.Nil) {
 		return CacheValue{}, false
 	} else if err != nil {
 		return CacheValue{SearchResponse{}, err}, true
 	}
-	return value, true
+
+	// if err := cacheValue.UnmarshalBinary([]byte(val)); err != nil {
+	// 	return CacheValue{SearchResponse{}, err}, true
+	// }
+
+	return cacheValue, true
 }
 
 func (r *Retriever) setPriceInCache(ctx context.Context, key CacheKey, value CacheValue) error {
-	valueJSON, err := json.Marshal(value)
-	if err != nil {
-		return err
-	}
-
 	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
 	logrus.Debug(searchString)
 
-	err = RedisClient.Set(ctx, searchString, string(valueJSON), 0).Err()
+	logrus.Debug("setting value ", value)
+	err := RedisClient.Set(ctx, searchString, &value, 0).Err()
 	if err != nil {
 		return fmt.Errorf("error setting cache value in Redis: %v", err)
 	}

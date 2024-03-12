@@ -12,7 +12,7 @@ import (
 	"time"
 	"trees"
 
-	"github.com/go-redis/redis/v8"
+	lru "github.com/hashicorp/golang-lru/v2"
 
 	"github.com/sirupsen/logrus"
 )
@@ -102,6 +102,8 @@ var configPath = flag.String("config_path", "",
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
+const LRUCacheSize = 10000
+
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 	flag.Parse()
@@ -141,11 +143,10 @@ func main() {
 
 	logrus.Info("Config load successfully")
 
-	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     config.RedisHost,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
+	LRUCache, err = lru.New2Q[CacheKey, CacheValue](LRUCacheSize)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	logrus.Info("Cache initialized successfully")
 
