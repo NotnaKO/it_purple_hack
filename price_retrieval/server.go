@@ -12,6 +12,7 @@ import (
 	"time"
 	"trees"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,7 +31,6 @@ func NewHandler() *Handler {
 		logger: logger,
 		connector: connector.NewPriceManagerConnector(
 			config.PriceManagementHost, strconv.Itoa(int(config.PriceManagementPort)),
-			config.RedisHost, config.RedisPassword, config.RedisDB,
 		),
 	}
 }
@@ -137,6 +137,13 @@ func main() {
 	}
 
 	logrus.Info("Config load successfully")
+
+	RedisClient = redis.NewClient(&redis.Options{
+		Addr:     config.RedisHost,
+		Password: config.RedisPassword,
+		DB:       config.RedisDB,
+	})
+	logrus.Info("Cache initialized successfully")
 
 	handler := NewHandler()
 

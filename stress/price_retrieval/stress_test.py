@@ -28,7 +28,7 @@ async def send_request(session, base_url):
         response_text = await response.text()
         end_time = time.time()
         waiting_time = end_time - start_time
-        print(f"Response: {response_text}, Waiting Time: {waiting_time} seconds")
+        # print(f"Response: {response_text}, Waiting Time: {waiting_time} seconds")
         return waiting_time
 
 
