@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
@@ -14,6 +16,7 @@ import (
 type PriceManager struct {
 	db           *sql.DB
 	DataBaseById map[uint64]string
+	mx           sync.Mutex
 	DataModify   map[uint64]bool
 }
 
@@ -27,6 +30,34 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 	}
 	return pm, nil
 }
+
+func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
+	tableName := request.DataBaseName
+	find_matrx := false
+	matrix_id := uint64(0)
+	mx_id := uint64(0)
+	for i, j := range p.DataBaseById {
+		mx_id = max(mx_id, i)
+		if j == tableName {
+			matrix_id = i
+			find_matrx = true
+			break
+		}
+	}
+	p.mx.Lock()
+	if !find_matrx {
+		matrix_id = mx_id + 1
+		p.DataBaseById[matrix_id] = p.DataBaseById[1]
+		p.DataBaseById[1] = tableName
+		p.createTable(tableName)
+	} else {
+		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
+	}
+	p.mx.Unlock()
+	return (tableName != ""), nil
+}
+
+// SetPrice устанавливает цену для указанных местоположения и микрокатегории
 
 var SetError = errors.New("error in set in saving data")
 
@@ -59,6 +90,41 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	p.DataModify[request.DataBaseID] = true
 	logrus.Debugf("Set modification to %s", tableName)
 	return err
+}
+
+func (p *PriceManager) GetMatrixById(request *HttpGetMatrixByIdRequestInfo) (string, error) {
+	tableName, ok := p.DataBaseById[request.DataBaseID]
+	if !ok {
+		return "no exist table with that data_base_id", errors.New("no exist table with that data_base_id")
+	}
+	return tableName, nil
+}
+
+func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uint64, error) {
+	find_matrx := false
+	matrix_id := uint64(0)
+	mx_id := uint64(0)
+	for i, j := range p.DataBaseById {
+		mx_id = max(mx_id, i)
+		if j == request.DataBaseName {
+			matrix_id = i
+			find_matrx = true
+			break
+		}
+	}
+	if !find_matrx {
+		p.mx.Lock()
+		matrix_id = mx_id + 1
+		p.DataBaseById[matrix_id] = request.DataBaseName
+		err := p.createTable(request.DataBaseName)
+		if err != nil {
+			delete(p.DataBaseById, matrix_id)
+			logrus.Debug(err)
+			return 0, nil
+		}
+		p.mx.Unlock()
+	}
+	return matrix_id, nil
 }
 
 // GetPrice возвращает цену для указанных местоположения и микрокатегории

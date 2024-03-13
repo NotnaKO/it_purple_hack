@@ -1,6 +1,6 @@
 server_port: 8080
 postgresql_user: 'postgres'
-password: 'anton2004'
+password: '1234'
 postgresql_host: 'localhost'
 dbname: 'postgres'
 db_schema: 'matrix'

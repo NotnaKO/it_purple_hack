@@ -9,15 +9,17 @@
 
 `HttpSetRequestInfo` -- класс с информацией о set http-запросе.
 
+`HttpGetMatrixByIdRequestInfo` -- класс с информацией о get matrix http-запросе.
+
+`HttpGetIdByMatrixRequestInfo` -- класс с информацией о get id http-запросе.
+
 `PriceManager` -- класс с основной логикой взаимодействия с базой данных
 
-## Создание базы данных, сборка и запуск
-
+Помощь
+=======
 Создание таблиц происходит автоматически, нужно лишь установить правильную конфигурацию.
 server.go запускает скрипты создания таблиц, затем сам создает партиции и запускает скрипты вставки
 значений.
-\
-Помощь
 
 ```bash
 go build
@@ -32,11 +34,31 @@ go build
 
 ## Примеры запросов
 ### Set price
+**Запрос присвоение цены в таблицу: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
 curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
 ```
+Ответ: успешный запрос/нет(с возвратом ошибки возвращения к таблице)
 
 ### Get price
+**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'http://localhost:8080/get_price?location_id=1&microcategory_id=1&data_base_id=1'
 ```
+Ответ: JSON{price:"< price >"}
+
+### Get matrix
+**Запрос получения имени таблицы по ее id, если не было возвращает table not found: обязательные параметры: data_base_id**
+```bash
+curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
+```
+Ответ: JSON {matrix_name: "< name table >"|"table not found"}
+
+### Get id
+**Запрос присвоения/получения(если была) id таблицы по ее имени: обязательные параметры: data_base_name**
+**Эта ручка создана для добавления в сервис таблиц, созданных аналитиками**
+```bash
+curl -X POST "http://localhost:8080/get_id?data_base_name=1"
+```
+Ответ: JSON {id_matrix: "< id table >"}
+

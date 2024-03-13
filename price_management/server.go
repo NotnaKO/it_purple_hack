@@ -133,6 +133,97 @@ func (h *Handler) SetPrice(w http.ResponseWriter, r *http.Request) {
 	h.logRequest(r, startTime)
 }
 
+func (h *Handler) GetMatrixById(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	getRequest, err := NewGetMatrixByIdRequest(r)
+	if err != nil {
+		h.logRequestError(r, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	matrix, err := h.priceManager.GetMatrixById(&getRequest)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Matrix string `json:"matrix_name"`
+	}{
+		Matrix: matrix,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.logRequest(r, startTime)
+}
+
+func (h *Handler) GetIdByMatrix(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	getRequest, err := NewGetIdByMatrixRequest(r)
+	if err != nil {
+		h.logRequestError(r, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.priceManager.GetIdByMatrix(&getRequest)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Matrix uint64 `json:"id_matrix"`
+	}{
+		Matrix: id,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.logRequest(r, startTime)
+}
+
+func (h *Handler) ChangeStorage(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	getRequest, err := NewChangeStorage(r)
+	if err != nil {
+		h.logRequestError(r, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.priceManager.ChangeStorage(&getRequest)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintf(w, "%b", id)
+
+	h.logRequest(r, startTime)
+}
+
 func (h *Handler) logRequest(r *http.Request, startTime time.Time) {
 	duration := time.Since(startTime)
 	metrics.RequestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(duration.Seconds())
@@ -251,7 +342,9 @@ func main() {
 	handler := NewHandler(priceManager, logger)
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
-	// TODO kubernetes. right now leave only one port
+	http.HandleFunc("/get_matrix", handler.GetMatrixById)
+	http.HandleFunc("/get_id", handler.GetIdByMatrix)
+	http.HandleFunc("/change_storage", handler.ChangeStorage)
 	go func() {
 		port := strconv.Itoa(int(config.ServerPort))
 		logrus.Infof("Price Management Service is listening on port %s...\n", port)

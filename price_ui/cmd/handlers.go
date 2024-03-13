@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strconv"
 )
@@ -45,11 +46,6 @@ func (app *application) handleSimpleRequest(fileName string, path string) func(h
 	}
 }
 
-type storage struct {
-	Baseline  string            `json:"baseline"`
-	Discounts map[string]string `json:"discounts"`
-}
-
 func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
@@ -57,25 +53,47 @@ func (app *application) handleStorageRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var resp storage
+	var storage struct {
+		Baseline  string            `json:"baseline"`
+		Discounts map[string]string `json:"discounts"`
+	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		app.serverError(w, err)
 		return
-	} else if err = json.Unmarshal(body, &resp); err != nil {
+	} else if err = json.Unmarshal(body, &storage); err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	app.infoLog.Printf("Save storage request: %v, %v", resp.Baseline, resp.Discounts)
+	params := url.Values{}
+	params.Add("data_base_name", storage.Baseline)
+
+	reqURL := app.server_addr + "/change_storage?" + params.Encode()
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	for _, matr := range storage.Discounts {
+		// Подготовка параметров запроса
+		params = url.Values{}
+		params.Add("data_base_id", matr)
+
+		// Добавление параметров к URL
+		reqURL := app.server_addr + "/get_matrix?" + params.Encode()
+		resp, err := http.Get(reqURL)
+		if err != nil {
+			fmt.Println("Ошибка при отправке запроса: ", err)
+			return
+		}
+		defer resp.Body.Close()
+	}
+
+	app.infoLog.Printf("Save storage request: %v, %v", storage.Baseline, storage.Discounts)
 	w.WriteHeader(http.StatusOK)
-
-	// TODO send request to server
-}
-
-type updater struct {
-	Matrix  string  `json:"update_matrix"`
-	Updates [][]int `json:"updates"`
 }
 
 func (app *application) handleUpdateRequest(w http.ResponseWriter, r *http.Request) {
@@ -85,9 +103,12 @@ func (app *application) handleUpdateRequest(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var resp updater
+	var resp struct {
+		Matrix  string  `json:"update_matrix"`
+		Updates [][]int `json:"updates"`
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
-	app.errorLog.Println(body)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -96,15 +117,32 @@ func (app *application) handleUpdateRequest(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	num, err := strconv.Atoi(resp.Matrix)
+	_, err = strconv.Atoi(resp.Matrix)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	app.infoLog.Printf("Save storage request: %v, %v", num, resp.Updates)
-	w.WriteHeader(http.StatusOK)
 
-	// TODO send request to server
+	for _, tuple := range resp.Updates {
+		// Подготовка параметров запроса
+		params := url.Values{}
+		params.Add("location_id", strconv.Itoa(tuple[0]))
+		params.Add("microcategory_id", strconv.Itoa(tuple[1]))
+		params.Add("data_base_id", resp.Matrix)
+		params.Add("price", strconv.Itoa(tuple[2]))
+
+		// Добавление параметров к URL
+		reqURL := app.server_addr + "/set_price?" + params.Encode()
+		resp, err := http.Get(reqURL)
+		if err != nil {
+			fmt.Println("Ошибка при отправке запроса: ", err)
+			return
+		}
+		defer resp.Body.Close()
+	}
+
+	app.infoLog.Printf("Save storage request: %v, %v", 1, resp.Updates)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Request) {
@@ -119,27 +157,78 @@ func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Requ
 
 func (app *application) addRequestHandler(w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("data")
-	app.infoLog.Println(data)
+	app.infoLog.Println("addRequestHandler ", data)
 
-	// TODO request service
-	// Отправляем ответ в формате JSON с числом 1
-	responseData := struct {
-		Result int `json:"res"`
-	}{1}
+	// Подготовка параметров запроса
+	params := url.Values{}
+	params.Add("data_base_name", data)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(responseData)
+	// Добавление параметров к URL
+	reqURL := app.server_addr + "/get_id?" + params.Encode()
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Чтение тела ответа
+	var responseObj struct {
+		IdMatrix int `json:"id_matrix"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&responseObj); err != nil {
+		fmt.Println("Ошибка при декодировании JSON:", err)
+		return
+	}
+
+	if responseObj.IdMatrix == 0 {
+		responseData := struct {
+			Result string `json:"res"`
+		}{"matrix not found"}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(responseData)
+	} else {
+		// Отправляем ответ в формате JSON
+		responseData := struct {
+			Result int `json:"res"`
+		}{responseObj.IdMatrix}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(responseData)
+	}
 }
 
 func (app *application) getRequestHandler(w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("data")
-	app.infoLog.Println("Hi ", data)
+	app.infoLog.Println("getRequestHandler ", data)
 
-	// TODO request service
-	// Отправляем ответ в формате JSON с числом 1
+	// Подготовка параметров запроса
+	params := url.Values{}
+	params.Add("data_base_id", data)
+
+	// Добавление параметров к URL
+	reqURL := app.server_addr + "/get_matrix?" + params.Encode()
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Чтение тела ответа
+	var responseObj struct {
+		NameMatrix string `json:"matrix_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&responseObj); err != nil {
+		fmt.Println("Ошибка при декодировании JSON:", err)
+		return
+	}
+
+	// Отправляем ответ в формате JSON
 	responseData := struct {
-		Result int `json:"res"`
-	}{1}
+		Result string `json:"res"`
+	}{responseObj.NameMatrix}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)

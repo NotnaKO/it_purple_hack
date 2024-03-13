@@ -2,10 +2,24 @@ package main
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+
+	"github.com/sirupsen/logrus"
 )
+
+func (p *PriceManager) createTable(tableName string) error {
+	for i := uint64(0); i < config.CategoriesCount; i += config.TablePartitionSize {
+		fullName := fmt.Sprintf("%s.%s", config.DBSchema, tableName)
+		request := fmt.Sprintf("CREATE TABLE %s_%d PARTITION OF %s FOR VALUES FROM (%d) TO (%d);",
+			fullName, i/config.TablePartitionSize+1, fullName, i, i+config.TablePartitionSize)
+		_, err := p.db.Exec(request)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (p *PriceManager) loadDB() error {
 	beginPath, err := os.Getwd()
@@ -32,14 +46,9 @@ func (p *PriceManager) loadDB() error {
 	logrus.Debug("Master tables created. Now go to partitions.")
 
 	for _, tableName := range p.DataBaseById {
-		for i := uint64(0); i < config.CategoriesCount; i += config.TablePartitionSize {
-			fullName := fmt.Sprintf("%s.%s", config.DBSchema, tableName)
-			request := fmt.Sprintf("CREATE TABLE %s_%d PARTITION OF %s FOR VALUES FROM (%d) TO (%d);",
-				fullName, i/config.TablePartitionSize+1, fullName, i, i+config.TablePartitionSize)
-			_, err = p.db.Exec(request)
-			if err != nil {
-				return err
-			}
+		err := p.createTable(tableName)
+		if (err != nil) {
+			return err
 		}
 	}
 	logrus.Debug("Partitions set successfully. Now go to insert values")

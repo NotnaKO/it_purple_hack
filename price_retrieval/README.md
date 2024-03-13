@@ -52,6 +52,6 @@ curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET
 
 ### API
 
-`LocationInfo` -- класс с информацией об http-запросе.
-`Handler` -- класс с основным logger'ом и функциями обработки http-запросов
-`Retriever` -- класс с основной логикой поиска (TODO)
+`LocationInfo` -- класс с информацией об http-запросе.\
+`Handler` -- класс с основным logger'ом и функциями обработки http-запросов\
+`Retriever` -- класс с основной логикой поиска(описана в main README)

@@ -6,6 +6,22 @@ import (
 	"strconv"
 )
 
+type HttpChangeStorage struct {
+	DataBaseName string
+}
+
+func NewChangeStorage(r *http.Request) (HttpChangeStorage, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_name")
+	if dbIDS == "" {
+		return HttpChangeStorage{}, errors.New("data_base_name is required")
+	}
+
+	return HttpChangeStorage{
+		DataBaseName: dbIDS,
+	}, nil
+}
+
 type HttpGetRequestInfo struct {
 	LocationID, MicrocategoryID, DataBaseID uint64
 }
@@ -42,6 +58,42 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 		LocationID:      locationID,
 		MicrocategoryID: microcategoryID,
 		DataBaseID:      dbID,
+	}, nil
+}
+
+type HttpGetMatrixByIdRequestInfo struct {
+	DataBaseID uint64
+}
+
+func NewGetMatrixByIdRequest(r *http.Request) (HttpGetMatrixByIdRequestInfo, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_id")
+	if dbIDS == "" {
+		return HttpGetMatrixByIdRequestInfo{}, errors.New("data_base_id is required")
+	}
+	dbID, err := strconv.ParseUint(dbIDS, 10, 64)
+	if err != nil {
+		return HttpGetMatrixByIdRequestInfo{}, errors.New("invalid data_base_id")
+	}
+
+	return HttpGetMatrixByIdRequestInfo{
+		DataBaseID: dbID,
+	}, nil
+}
+
+type HttpGetIdByMatrixRequestInfo struct {
+	DataBaseName string
+}
+
+func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_name")
+	if dbIDS == "" {
+		return HttpGetIdByMatrixRequestInfo{}, errors.New("data_base_name is required")
+	}
+
+	return HttpGetIdByMatrixRequestInfo{
+		DataBaseName: dbIDS,
 	}, nil
 }
 
