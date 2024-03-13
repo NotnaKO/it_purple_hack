@@ -34,6 +34,10 @@
             text-align: center;
         }
 
+        h3 {
+            font-size: 1.2em;
+        }
+
         .container {
             display: flex;
             margin-top: 20px;
@@ -124,7 +128,9 @@
     <div class="container">
         <div class="column">
             <h2>Construct storage</h2>
+            <h3>Впишите id новой baseline матрицы</h3>
             <input id="baselineInput" class="input" type="text" placeholder="Baseline matrix id">
+            <h3>Впишите действующие segment id и соответствующие им id скидочных матриц</h3>
             <div id="discountInputs">
                 <div class="input-row">
                     <input type="text" placeholder="Segment id">
@@ -163,8 +169,9 @@
     <div class="container">
         <div class="column">
             <h2>Update/Insert rows in matrix</h2>
-            <div class="grey-background">
+            <h3>Впишите id изменяемой матрицы</h3>
             <input id="UpdateIDInput" class="input" type="text" placeholder="Matrix id">
+            <h3>Впишите столбцы с id локации, id категории товаров и новыми ценами</h3>
             <div id="updateInputs">
                 <div class="input-row">
                     <input type="text" placeholder="Location id">
@@ -172,17 +179,18 @@
                     <input type="text" placeholder="Price">
                     <button class="grey" onclick="removeInput(this)">-</button>
                 </div>
-            </div>
             <button class="grey" onclick="addInputUpdate()">+</button>
             <button class="grey" onclick="sendUpdate()">Update table</button>
         </div>
         </div>
         <div class="column">
             <h2>Add matrix to price manager</h2>
+            <h3>Добавление новой матрицы в сервис поиска цен и присвоение ей id</h3>
             <input type="text" id="adderInput" class="input" placeholder="Enter matrix name">
             <button class="grey" onclick="addRequest()">Make request</button>
             <label class="answer" id="adderAnswer"></label>
             <h2>Get matrix id from price manager</h2>
+            <h3>Узнать id ценовой матрицы в сервисе поиска цен</h3>
             <input id="getterInput" class="input" type="text" placeholder="Enter matrix name">
             <button class="grey" onclick="getRequest()">Make request</button>
             <label class="answer" id="getterAnswer"></label>
@@ -191,7 +199,7 @@
 
     <h2 class="bigger">Download</h2>
     <div class="download-window">
-        <a download href="/files/locations.txt">Location graph</a> | <a href="/files/categories.txt" download>Microcategory graph</a>
+        <a download href="/files/locations.txt">Location graph (Дерево локаций с указанием их id)</a> | <a href="/files/categories.txt" download>Сategory graph (Дерево категорий с указанием их id)</a>
     </div>
 
     <script>
