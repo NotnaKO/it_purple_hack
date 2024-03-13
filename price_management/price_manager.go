@@ -31,13 +31,17 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	// for debug table id reguest
 	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
-	val, ok := p.DataBaseById[request.DataBaseID]
+	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
 		return errors.New("no exist table with that data_base_id")
 	}
-	_, err := p.db.Exec(fmt.Sprintf("INSERT INTO %s(location_id, microcategory_id, price) VALUES($1, $2, $3)",
-		val),
-		request.LocationID, request.MicrocategoryID, request.Price)
+	tableNameInRequest := fmt.Sprintf("%s.%s", config.DBSchema, tableName)
+	requestToDB := fmt.Sprintf(
+		"INSERT INTO %s(location_id, microcategory_id, price) VALUES(%d, %d, %d) ON CONFLICT ON CONSTRAINT pk_%s DO UPDATE SET price=%d\n",
+		tableNameInRequest,
+		request.LocationID, request.MicroCategoryID, request.Price, tableName, request.Price)
+	logrus.Debug(requestToDB)
+	_, err := p.db.Exec(requestToDB)
 	return err
 }
 
@@ -49,12 +53,11 @@ func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
 	if !ok {
 		return 0, errors.New("no exist table with that data_base_id")
 	}
-	logrus.Debug(fmt.Sprintf("SELECT price FROM %s WHERE location_id=%d AND microcategory_id=%d\n",
-		fmt.Sprintf("%s.%s", config.DBSchema, tableName), request.LocationID, request.MicrocategoryID))
-	err := p.db.QueryRow(fmt.Sprintf("SELECT price FROM %s ",
-		fmt.Sprintf("%s.%s", config.DBSchema, tableName))+
-		"WHERE location_id=$1 AND microcategory_id=$2",
-		request.LocationID, request.MicrocategoryID).Scan(&price)
+	requestToDB := fmt.Sprintf("SELECT price FROM %s_%d WHERE location_id=%d AND microcategory_id=%d\n",
+		fmt.Sprintf("%s.%s", config.DBSchema, tableName),
+		request.MicrocategoryID/config.TablePartitionSize+1, request.LocationID, request.MicrocategoryID)
+	logrus.Debug(requestToDB)
+	err := p.db.QueryRow(requestToDB).Scan(&price)
 	if err != nil {
 		return 0, err
 	}
