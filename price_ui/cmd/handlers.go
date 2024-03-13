@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strconv"
 )
@@ -121,11 +122,31 @@ func (app *application) addRequestHandler(w http.ResponseWriter, r *http.Request
 	data := r.URL.Query().Get("data")
 	app.infoLog.Println(data)
 
-	// TODO request service
-	// Отправляем ответ в формате JSON с числом 1
+	// Подготовка параметров запроса
+	params := url.Values{}
+	params.Add("data_base_name", data)
+
+	// Добавление параметров к URL
+	reqURL := app.server_addr + "/get_id?" + params.Encode()
+
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Чтение тела ответа
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Ошибка при чтении ответа:", err)
+		return
+	}
+
+	// Отправляем ответ в формате JSON
 	responseData := struct {
-		Result int `json:"res"`
-	}{1}
+		Result string `json:"res"`
+	}{string(body)}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)
@@ -135,8 +156,28 @@ func (app *application) getRequestHandler(w http.ResponseWriter, r *http.Request
 	data := r.URL.Query().Get("data")
 	app.infoLog.Println("Hi ", data)
 
-	// TODO request service
-	// Отправляем ответ в формате JSON с числом 1
+	// Подготовка параметров запроса
+	params := url.Values{}
+	params.Add("data_base_name", data)
+
+	// Добавление параметров к URL
+	reqURL := app.server_addr + "/get_id?" + params.Encode()
+
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Чтение тела ответа
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Ошибка при чтении ответа:", err)
+		return
+	}
+
+	// Отправляем ответ в формате JSON
 	responseData := struct {
 		Result int `json:"res"`
 	}{1}

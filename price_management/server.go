@@ -107,19 +107,8 @@ func (h *Handler) GetMatrixById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		Matrix string `json:"matrix_name"`
-	}{
-		Matrix: matrix,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		h.logServerError(r, err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintf(w, matrix)
 
 	h.logRequest(r, startTime)
 }
@@ -141,19 +130,8 @@ func (h *Handler) GetIdByMatrix(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		Matrix uint64 `json:"id_matrix"`
-	}{
-		Matrix: id,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		h.logServerError(r, err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintf(w, "%d", id)
 
 	h.logRequest(r, startTime)
 }

@@ -194,6 +194,11 @@
             <input id="getterInput" class="input" type="text" placeholder="Enter matrix name">
             <button class="grey" onclick="getRequest()">Make request</button>
             <label class="answer" id="getterAnswer"></label>
+            <h2>Get matrix id from price manager</h2>
+            <h3>Узнать id ценовой матрицы в сервисе поиска цен</h3>
+            <input id="getterNameInput" class="input" type="text" placeholder="Enter matrix id">
+            <button class="grey" onclick="getNameRequest()">Make request</button>
+            <label class="answer" id="getterNameAnswer"></label>
         </div>
     </div>
 
@@ -300,13 +305,29 @@
         function getRequest() {
             // Отправляем GET запрос
             const data = document.getElementById('getterInput').value;
-            console.log(`/add_request?data="${data}"`)
-            fetch(`/add_request?data=${data}`)
+            console.log(`/get_request?data="${data}"`)
+            fetch(`/get_request?data=${data}`)
             .then(response => response.json())
             .then(data => {
                 console.log('GET запрос выполнен успешно:', data);
                 const getterAnswerDiv = document.getElementById('getterAnswer');
                 getterAnswerDiv.textContent = " Matrix has id: " + data["res"];
+            })
+            .catch(error => {
+                console.error('Ошибка при выполнении GET запроса:', error);
+            });
+        }
+
+        function getNameRequest() {
+            // Отправляем GET запрос
+            const data = document.getElementById('getterNameInput').value;
+            console.log(`/get_name_request?data="${data}"`)
+            fetch(`/get_name_request?data=${data}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('GET запрос выполнен успешно:', data);
+                const getterAnswerDiv = document.getElementById('getterNameAnswer');
+                getterAnswerDiv.textContent = " Matrix has name: " + data["res"];
             })
             .catch(error => {
                 console.error('Ошибка при выполнении GET запроса:', error);

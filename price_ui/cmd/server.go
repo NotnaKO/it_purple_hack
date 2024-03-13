@@ -8,15 +8,16 @@ import (
 )
 
 func main() {
-
+	server_addr := "http://localhost:8080"
 	addr := flag.String("addr", "127.0.0.1:9992", "Сетевой адрес HTTP")
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
+		server_addr: server_addr,
+		errorLog:    errorLog,
+		infoLog:     infoLog,
 	}
 
 	srv := &http.Server{
