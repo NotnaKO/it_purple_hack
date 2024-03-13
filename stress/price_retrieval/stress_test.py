@@ -1,16 +1,17 @@
-import requests
-import random
-import time
-import sys
 import asyncio
+import random
+import sys
+import time
+
 import aiohttp
+
 
 async def send_request(session, base_url):
     start_time = time.time()
-    
-    location_id = random.randint(1, 1000)
-    microcategory_id = random.randint(1, 1000)
-    user_id = random.randint(1, 3000)
+
+    location_id = random.randint(1, 4000)
+    microcategory_id = random.randint(1, 60)
+    user_id = random.randint(1, 300)
 
     params = {
         'location_id': location_id,
@@ -30,6 +31,7 @@ async def send_request(session, base_url):
         print(f"Response: {response_text}, Waiting Time: {waiting_time} seconds")
         return waiting_time
 
+
 async def main():
     if len(sys.argv) != 4:
         print("Usage: python script.py [server_port] [rps] [duration]")
@@ -46,7 +48,7 @@ async def main():
         for _ in range(num_requests):
             waiting_time = await send_request(session, base_url)
             waiting_times.append(waiting_time)
-            await asyncio.sleep(1 / rps)  # Delay between requests to achieve the desired RPS
+            # await asyncio.sleep(1 / rps)  # Delay between requests to achieve the desired RPS
 
         end_time = time.time()
         print(f"Time taken: {end_time - start_time} seconds")
@@ -54,6 +56,7 @@ async def main():
         print(f"Actual RPS: {actual_rps}")
         mean_waiting_time = sum(waiting_times) / len(waiting_times)
         print(f"Mean Waiting Time: {mean_waiting_time} seconds")
+
 
 if __name__ == '__main__':
     asyncio.run(main())
