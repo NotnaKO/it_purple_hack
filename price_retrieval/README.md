@@ -24,6 +24,22 @@ sudo systemctl start redis
 
 В файле `/etc/redis/redis.conf` есть строчка `port [port_num]` с портом `redis` сервиса. Его нужно добавить в `../config/price_retrieval.yaml`
 
+Необходимо также установить библиотеки `prometheus` и `grafana` для мониторинга. В файле `/etc/prometheus/prometheus.yml` нужно добавить:
+```
+scrape_configs:
+  ...
+
+  - job_name: 'price_retriever'
+    static_configs:
+      - targets: ['localhost:7020']
+
+  - job_name: 'price_manager'
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
+В папке `data` лежит пример дэшборда (`dashboard.json`), где показаны графики с текущим RPS и долей cache misses.
+
 ```bash
 go build
 ./price_retrieval -config_path=../config/price_retrieval.yaml

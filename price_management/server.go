@@ -12,8 +12,47 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
+
+type Metrics struct {
+	RequestsTotal   *prometheus.CounterVec
+	RequestDuration *prometheus.HistogramVec
+}
+
+var metrics *Metrics
+
+func NewMetrics() *Metrics {
+	return &Metrics{
+		RequestsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "price_manager_requests_total",
+				Help: "Total number of requests processed by the Price Manager service.",
+			},
+			[]string{"method", "path"},
+		),
+		RequestDuration: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name: "price_manager_request_duration_seconds",
+				Help: "Duration of requests processed by the Price Manager service.",
+			},
+			[]string{"method", "path"},
+		),
+	}
+}
+
+func (m *Metrics) Register() {
+	prometheus.MustRegister(m.RequestsTotal)
+	prometheus.MustRegister(m.RequestDuration)
+}
+
+func InitializeMetrics() {
+	metrics = NewMetrics()
+	metrics.Register()
+	http.Handle("/metrics", promhttp.Handler())
+}
 
 type JSONCategory struct {
 	Name string `json:"name"`
@@ -33,6 +72,8 @@ func NewHandler(priceManager *PriceManager, logger *logrus.Logger) *Handler {
 }
 
 func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
+	metrics.RequestsTotal.WithLabelValues(r.URL.Path, r.Method).Inc()
+
 	startTime := time.Now()
 
 	getRequest, err := NewGetRequest(r)
@@ -67,6 +108,8 @@ func (h *Handler) GetPrice(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SetPrice(w http.ResponseWriter, r *http.Request) {
+	metrics.RequestsTotal.WithLabelValues(r.URL.Path, r.Method).Inc()
+
 	startTime := time.Now()
 
 	setRequest, err := NewSetRequest(r)
@@ -183,6 +226,7 @@ func (h *Handler) ChangeStorage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) logRequest(r *http.Request, startTime time.Time) {
 	duration := time.Since(startTime)
+	metrics.RequestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(duration.Seconds())
 	h.logger.WithFields(logrus.Fields{
 		"method":   r.Method,
 		"path":     r.URL.Path,
@@ -278,11 +322,13 @@ func main() {
 	}
 
 	// Now we are ready to start
-
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
 	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
+
+	InitializeMetrics()
+	logrus.Info("Prometheus initialized successfully")
 
 	handler := NewHandler(priceManager, logger)
 	http.HandleFunc("/get_price", handler.GetPrice)
