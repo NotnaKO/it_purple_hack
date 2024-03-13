@@ -22,7 +22,12 @@ func (p *PriceManager) createTable(tableName string) error {
 }
 
 func (p *PriceManager) loadDB() error {
-	err := os.Chdir(config.DataGenerationDirPath)
+	beginPath, err := os.Getwd()
+	if err != nil {
+		logrus.Error("Cannot get current path")
+		return err
+	}
+	err = os.Chdir(config.DataGenerationDirPath)
 	if err != nil {
 		return err
 	}
@@ -48,6 +53,10 @@ func (p *PriceManager) loadDB() error {
 	}
 	logrus.Debug("Partitions set successfully. Now go to insert values")
 	err = exec.Command("bash", "insert_values.sh").Run()
+	if err != nil {
+		return err
+	}
+	err = os.Chdir(beginPath)
 	if err != nil {
 		return err
 	}

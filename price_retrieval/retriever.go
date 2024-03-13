@@ -121,7 +121,7 @@ func (cv *CacheValue) UnmarshalBinary(data []byte) error {
 }
 
 func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheValue, bool) {
-	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
+	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category.ID, key.searchRequest.location.ID, key.tableID)
 	logrus.Debug(searchString)
 
 	var cacheValue CacheValue
@@ -137,7 +137,7 @@ func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheV
 }
 
 func (r *Retriever) setPriceInCache(ctx context.Context, key CacheKey, value CacheValue) error {
-	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category, key.searchRequest.location, key.tableID)
+	searchString := fmt.Sprintf("%d:%d:%d", key.searchRequest.category.ID, key.searchRequest.location.ID, key.tableID)
 	logrus.Debug(searchString)
 
 	logrus.Debug("setting value ", value)
