@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -67,8 +69,12 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		}
 	}
 	if !find_matrx {
-		matrix_id = mx_id + 1	
+		matrix_id = mx_id + 1
 		p.DataBaseById[matrix_id] = request.DataBaseName
+		err := p.loadDB()
+		if err != nil {
+			logrus.Fatal(err)
+		}
 	}
 	return matrix_id, nil
 }
