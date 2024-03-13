@@ -13,25 +13,10 @@
 
 ## Создание базы данных, сборка и запуск
 
-Создаем базу данных
-```bash
-sudo su - postgres
-createdb price_management
-exit
-```
-
-Создаем таблицу
-```SQL
-CREATE DATABASE price_management;
-
-CREATE TABLE price_matrix (
-    location_id BIGINT NOT NULL,
-    microcategory_id BIGINT NOT NULL,
-    price BIGINT NOT NULL,
-    PRIMARY KEY (location_id, microcategory_id)
-);
-```
-
+Создание таблиц происходит автоматически, нужно лишь установить правильную конфигурацию.
+server.go запускает скрипты создания таблиц, затем сам создает партиции и запускает скрипты вставки
+значений.
+\
 Помощь
 
 ```bash
