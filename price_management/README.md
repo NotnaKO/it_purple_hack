@@ -9,6 +9,10 @@
 
 `HttpSetRequestInfo` -- класс с информацией о set http-запросе.
 
+`HttpGetMatrixByIdRequestInfo` -- класс с информацией о get matrix http-запросе.
+
+`HttpGetIdByMatrixRequestInfo` -- класс с информацией о get id http-запросе.
+
 `PriceManager` -- класс с основной логикой взаимодействия с базой данных
 
 
