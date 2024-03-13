@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -12,6 +13,7 @@ import (
 type PriceManager struct {
 	db           *sql.DB
 	DataBaseById map[uint64]string
+	mx           sync.Mutex
 }
 
 func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, error) {
@@ -39,6 +41,7 @@ func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
 			break
 		}
 	}
+	p.mx.Lock()
 	if !find_matrx {
 		matrix_id = mx_id + 1
 		p.DataBaseById[matrix_id] = p.DataBaseById[1]
@@ -46,7 +49,8 @@ func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
 	} else {
 		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
 	}
-	p.loadDB()
+	p.createTable(tableName)
+	p.mx.Unlock()
 	return (tableName != ""), nil
 }
 
@@ -91,15 +95,16 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		}
 	}
 	if !find_matrx {
+		p.mx.Lock()
 		matrix_id = mx_id + 1
 		p.DataBaseById[matrix_id] = request.DataBaseName
-		err := p.loadDB()
+		err := p.createTable(request.DataBaseName)
 		if err != nil {
 			delete(p.DataBaseById, matrix_id)
 			logrus.Debug(err)
-			p.loadDB()
 			return 0, nil
 		}
+		p.mx.Unlock()
 	}
 	return matrix_id, nil
 }
