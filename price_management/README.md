@@ -11,26 +11,6 @@
 
 `PriceManager` -- класс с основной логикой взаимодействия с базой данных
 
-## Создание базы данных, сборка и запуск
-
-Создаем базу данных
-```bash
-sudo su - postgres
-createdb price_management
-exit
-```
-
-Создаем таблицу
-```SQL
-CREATE DATABASE price_management;
-
-CREATE TABLE price_matrix (
-    location_id BIGINT NOT NULL,
-    microcategory_id BIGINT NOT NULL,
-    price BIGINT NOT NULL,
-    PRIMARY KEY (location_id, microcategory_id)
-);
-```
 
 Помощь
 
@@ -47,11 +27,37 @@ go build
 
 ## Примеры запросов
 ### Set price
+**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
 curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
 ```
+Ответ: успешный запрос/нет(с возвратом ошибки возвращения к таблице)
 
 ### Get price
+**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'http://localhost:8080/get_price?location_id=1&microcategory_id=1&data_base_id=1'
 ```
+Ответ: JSON{price:"< price >"}
+
+### Set price
+**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
+```bash
+curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
+```
+Ответ: успешный запрос/нет(с возвратом ошибки возвращения к таблице)
+
+### Get matrix
+**Запрос получения имени таблицы по ее id: обязательные параметры: data_base_id**
+```bash
+curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
+```
+Ответ: JSON {matrix_name: "< name table >"|"table not found"}
+
+### Get id
+**Запрос получения id таблицы по ее имени: обязательные параметры: data_base_name**
+```bash
+curl -X POST "http://localhost:8080/get_id?data_base_name=1"
+```
+Ответ: JSON {id_matrix: "< id table >"|-1}
+

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -64,7 +65,7 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (int
 		}
 	}
 	if !find_matrx {
-		return -1, errors.New("no exist table with that data_base_id")
+		return -1, errors.New("no exist table with that data_base_name")
 	}
 	return matrix_id, nil
 }
