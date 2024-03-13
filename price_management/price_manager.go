@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-// TODO create hot table
 type PriceManager struct {
 	db           *sql.DB
 	DataBaseById map[uint64]string
@@ -50,9 +49,11 @@ func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
 		p.DataBaseById[matrix_id] = p.DataBaseById[1]
 		p.DataBaseById[1] = tableName
 		p.createTable(tableName)
+		
 	} else {
 		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
 	}
+	p.dumpTables()
 	p.mx.Unlock()
 	return (tableName != ""), nil
 }
@@ -63,8 +64,6 @@ var SetError = errors.New("error in set in saving data")
 
 // SetPrice в поле DataBaseId возвращается id таблицы из json таблиц
 func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
-	// for debug table id reguest
-	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
 	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
 		return errors.New("no exist table with that data_base_id")
@@ -120,8 +119,10 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		if err != nil {
 			delete(p.DataBaseById, matrix_id)
 			logrus.Debug(err)
+			p.mx.Unlock()
 			return 0, nil
 		}
+		p.dumpTables()
 		p.mx.Unlock()
 	}
 	return matrix_id, nil
