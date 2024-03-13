@@ -45,7 +45,7 @@ curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET
 Ответ: JSON{price:"< price >"}
 
 ### Get matrix
-**Запрос получения имени таблицы по ее id: обязательные параметры: data_base_id**
+**Запрос получения имени таблицы по ее id, если не было возвращает table not found: обязательные параметры: data_base_id**
 ```bash
 curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
 ```
@@ -57,5 +57,5 @@ curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
 ```bash
 curl -X POST "http://localhost:8080/get_id?data_base_name=1"
 ```
-Ответ: JSON {id_matrix: "< id table >"|-1}
+Ответ: JSON {id_matrix: "< id table >"}
 
