@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -57,11 +58,27 @@ func NewGetMatrixByIdRequest(r *http.Request) (HttpGetMatrixByIdRequestInfo, err
 	}
 	dbID, err := strconv.ParseUint(dbIDS, 10, 64)
 	if err != nil {
-		return HttpGetMatrixByIdRequestInfo{}, errors.New("invalid microcategory_id")
+		return HttpGetMatrixByIdRequestInfo{}, errors.New("invalid data_base_id")
 	}
 
 	return HttpGetMatrixByIdRequestInfo{
 		DataBaseID: dbID,
+	}, nil
+}
+
+type HttpGetIdByMatrixRequestInfo struct {
+	DataBaseID string
+}
+
+func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_name")
+	if dbIDS == "" {
+		return HttpGetIdByMatrixRequestInfo{}, errors.New("data_base_name is required")
+	}
+
+	return HttpGetIdByMatrixRequestInfo{
+		DataBaseID: dbIDS,
 	}, nil
 }
 

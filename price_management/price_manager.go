@@ -46,13 +46,27 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 }
 
 func (p *PriceManager) GetMatrixById(request *HttpGetMatrixByIdRequestInfo) (string, error) {
-	// for debug table id reguest
-	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
 	tableName, ok := p.DataBaseById[request.DataBaseID]
 	if !ok {
-		return "", errors.New("no exist table with that data_base_id")
+		return "no exist table with that data_base_id", errors.New("no exist table with that data_base_id")
 	}
 	return tableName, nil
+}
+
+func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (int, error) {
+	find_matrx := false
+	matrix_id := 0
+	for i, j := range p.DataBaseById {
+		if j == request.DataBaseID {
+			matrix_id = int(i)
+			find_matrx = true
+			break
+		}
+	}
+	if !find_matrx {
+		return -1, errors.New("no exist table with that data_base_id")
+	}
+	return matrix_id, nil
 }
 
 // GetPrice возвращает цену для указанных местоположения и микрокатегории
