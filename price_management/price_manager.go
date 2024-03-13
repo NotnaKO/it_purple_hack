@@ -64,10 +64,13 @@ func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
 		p.DataBaseById[matrix_id] = p.DataBaseById[1]
 		p.DataBaseById[1] = tableName
 	} else {
-		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id] 
+		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
 	}
-	p.loadDB()
-	return tableName, nil
+	err := p.loadDB()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (p *PriceManager) GetMatrixById(request *HttpGetMatrixByIdRequestInfo) (string, error) {
@@ -91,8 +94,12 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		}
 	}
 	if !find_matrx {
-		matrix_id = mx_id + 1
-		p.DataBaseById[matrix_id] = request.DataBaseName
+		if request.Create {
+			matrix_id = mx_id + 1
+			p.DataBaseById[matrix_id] = request.DataBaseName
+		} else {
+			return 0, errors.New("not found")
+		}
 	}
 	return matrix_id, nil
 }

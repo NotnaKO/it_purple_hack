@@ -125,13 +125,18 @@ func (h *Handler) GetIdByMatrix(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.priceManager.GetIdByMatrix(&getRequest)
 	if err != nil {
-		h.logServerError(r, err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		if err == errors.New("not found") {
+			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprintf(w, "%s", err.Error())
+		} else {
+			h.logServerError(r, err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprintf(w, "%d", id)
 	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintf(w, "%d", id)
 
 	h.logRequest(r, startTime)
 }
@@ -158,7 +163,6 @@ func (h *Handler) ChangeStorage(w http.ResponseWriter, r *http.Request) {
 
 	h.logRequest(r, startTime)
 }
-
 
 func (h *Handler) logRequest(r *http.Request, startTime time.Time) {
 	duration := time.Since(startTime)

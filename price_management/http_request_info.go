@@ -67,6 +67,7 @@ func NewGetMatrixByIdRequest(r *http.Request) (HttpGetMatrixByIdRequestInfo, err
 
 type HttpGetIdByMatrixRequestInfo struct {
 	DataBaseName string
+	Create       bool
 }
 
 func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, error) {
@@ -76,8 +77,13 @@ func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, err
 		return HttpGetIdByMatrixRequestInfo{}, errors.New("data_base_name is required")
 	}
 
+	dbCREATE := r.URL.Query().Get("create")
+	if dbCREATE != "" && dbCREATE != "0" && dbCREATE != "1" {
+		return HttpGetIdByMatrixRequestInfo{}, errors.New("create must be 0 or 1")
+	}
 	return HttpGetIdByMatrixRequestInfo{
 		DataBaseName: dbIDS,
+		Create:       dbCREATE == "1",
 	}, nil
 }
 

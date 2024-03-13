@@ -120,11 +120,12 @@ func (app *application) handleMetricsRequest(w http.ResponseWriter, r *http.Requ
 
 func (app *application) addRequestHandler(w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("data")
-	app.infoLog.Println(data)
+	app.infoLog.Println("addRequestHandler ", data)
 
 	// Подготовка параметров запроса
 	params := url.Values{}
 	params.Add("data_base_name", data)
+	params.Add("create", "1")
 
 	// Добавление параметров к URL
 	reqURL := app.server_addr + "/get_id?" + params.Encode()
@@ -154,11 +155,12 @@ func (app *application) addRequestHandler(w http.ResponseWriter, r *http.Request
 
 func (app *application) getRequestHandler(w http.ResponseWriter, r *http.Request) {
 	data := r.URL.Query().Get("data")
-	app.infoLog.Println("Hi ", data)
+	app.infoLog.Println("getRequestHandler ", data)
 
 	// Подготовка параметров запроса
 	params := url.Values{}
 	params.Add("data_base_name", data)
+	params.Add("create", "0")
 
 	// Добавление параметров к URL
 	reqURL := app.server_addr + "/get_id?" + params.Encode()
@@ -179,8 +181,42 @@ func (app *application) getRequestHandler(w http.ResponseWriter, r *http.Request
 
 	// Отправляем ответ в формате JSON
 	responseData := struct {
-		Result int `json:"res"`
-	}{1}
+		Result string `json:"res"`
+	}{string(body)}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(responseData)
+}
+
+func (app *application) getNameRequestHandler(w http.ResponseWriter, r *http.Request) {
+	data := r.URL.Query().Get("data")
+	app.infoLog.Println("getNameRequestHandler ", data)
+
+	// Подготовка параметров запроса
+	params := url.Values{}
+	params.Add("data_base_id", data)
+
+	// Добавление параметров к URL
+	reqURL := app.server_addr + "/get_matrix?" + params.Encode()
+
+	resp, err := http.Get(reqURL)
+	if err != nil {
+		fmt.Println("Ошибка при отправке запроса: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Чтение тела ответа
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Ошибка при чтении ответа:", err)
+		return
+	}
+
+	// Отправляем ответ в формате JSON
+	responseData := struct {
+		Result string `json:"res"`
+	}{string(body)}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(responseData)
