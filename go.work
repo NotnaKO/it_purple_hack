@@ -1,0 +1,9 @@
+go 1.22.0
+
+use (
+	./price_management
+	./price_retrieval
+	./price_retrieval/connector
+	./price_retrieval/trees
+	./price_ui
+)
