@@ -14,7 +14,54 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+type Metrics struct {
+	RequestsTotal    prometheus.Counter
+	RequestDuration  *prometheus.HistogramVec
+	CacheMissesTotal prometheus.Counter
+}
+
+var metrics *Metrics
+
+func NewMetrics() *Metrics {
+	return &Metrics{
+		RequestsTotal: prometheus.NewCounter(
+			prometheus.CounterOpts{
+				Name: "price_retriever_requests_total",
+				Help: "Total number of requests processed by the PriceRetriever service.",
+			},
+		),
+		RequestDuration: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name: "price_retriever_request_duration_seconds",
+				Help: "Duration of requests processed by the PriceRetriever service.",
+			},
+			[]string{"method", "path"},
+		),
+		CacheMissesTotal: prometheus.NewCounter(
+			prometheus.CounterOpts{
+				Name: "price_retriever_cache_misses_total",
+				Help: "Total number of cache misses in the PriceRetriever service.",
+			},
+		),
+	}
+}
+
+func (m *Metrics) Register() {
+	prometheus.MustRegister(m.RequestsTotal)
+	prometheus.MustRegister(m.RequestDuration)
+	prometheus.MustRegister(m.CacheMissesTotal)
+}
+
+func InitializeMetrics() {
+	metrics = NewMetrics()
+	metrics.Register()
+	http.Handle("/metrics", promhttp.Handler())
+}
 
 type Handler struct {
 	logger    *logrus.Logger
@@ -37,6 +84,8 @@ func NewHandler() *Handler {
 
 // PriceRetrievalService обрабатывает запросы retrieve и использует алгоритм RoadUpSearch
 func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) {
+	metrics.RequestsTotal.Inc()
+
 	startTime := time.Now()
 
 	info, err := NewConnectionInfo(r)
@@ -70,6 +119,7 @@ func (h *Handler) PriceRetrievalService(w http.ResponseWriter, r *http.Request) 
 
 func (h *Handler) logRequest(r *http.Request, startTime time.Time) {
 	duration := time.Since(startTime)
+	metrics.RequestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(duration.Seconds())
 	h.logger.WithFields(logrus.Fields{
 		"method":   r.Method,
 		"path":     r.URL.Path,
@@ -137,6 +187,9 @@ func main() {
 	}
 
 	logrus.Info("Config load successfully")
+
+	InitializeMetrics()
+	logrus.Info("Prometheus initialized successfully")
 
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     config.RedisHost,

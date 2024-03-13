@@ -127,6 +127,7 @@ func (r *Retriever) getPriceFromCache(ctx context.Context, key CacheKey) (CacheV
 	var cacheValue CacheValue
 	err := RedisClient.Get(ctx, searchString).Scan(&cacheValue)
 	if errors.Is(err, redis.Nil) {
+		metrics.CacheMissesTotal.Inc()
 		return CacheValue{}, false
 	} else if err != nil {
 		return CacheValue{SearchResponse{}, err}, true
