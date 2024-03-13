@@ -124,7 +124,9 @@
     <div class="container">
         <div class="column">
             <h2>Construct storage</h2>
+            <h3>Впишите id новой baseline матрицы</h3>
             <input id="baselineInput" class="input" type="text" placeholder="Baseline matrix id">
+            <h3>Впишите действующие segment id и соответствующие им id скидочных матриц</h3>
             <div id="discountInputs">
                 <div class="input-row">
                     <input type="text" placeholder="Segment id">
@@ -163,8 +165,9 @@
     <div class="container">
         <div class="column">
             <h2>Update/Insert rows in matrix</h2>
-            <div class="grey-background">
+            <h3>Впишите id изменяемой матрицы</h3>
             <input id="UpdateIDInput" class="input" type="text" placeholder="Matrix id">
+            <h3>Впишите столбцы с id локации, id категории товаров и новыми ценами</h3>
             <div id="updateInputs">
                 <div class="input-row">
                     <input type="text" placeholder="Location id">
@@ -176,14 +179,16 @@
             <button class="grey" onclick="addInputUpdate()">+</button>
             <button class="grey" onclick="sendUpdate()">Update table</button>
         </div>
-        </div>
         <div class="column">
-            <h2>Add matrix to price manager</h2>
+            <h2>Matrix id in price manager</h2>
+            <h3>Найти id матрицы в сервисе поиска цен.
+            Если его нет, то id будет присвоен автоматически</h3>
             <input type="text" id="adderInput" class="input" placeholder="Enter matrix name">
             <button class="grey" onclick="addRequest()">Make request</button>
             <label class="answer" id="adderAnswer"></label>
-            <h2>Get matrix id from price manager</h2>
-            <input id="getterInput" class="input" type="text" placeholder="Enter matrix name">
+            <h2>Get matrix name from price manager</h2>
+            <h3>Узнать по id ценовой матрицы в сервисе поиска цен ее название в схеме</h3>
+            <input id="getterInput" class="input" type="text" placeholder="Enter matrix id">
             <button class="grey" onclick="getRequest()">Make request</button>
             <label class="answer" id="getterAnswer"></label>
         </div>
@@ -191,7 +196,7 @@
 
     <h2 class="bigger">Download</h2>
     <div class="download-window">
-        <a download href="/files/locations.txt">Location graph</a> | <a href="/files/categories.txt" download>Microcategory graph</a>
+        <a download href="/files/locations.txt">Location graph (Дерево локаций с указанием их id)</a> | <a href="/files/categories.txt" download>Microcategory graph (Дерево категорий с указанием их id)</a>
     </div>
 
     <script>
@@ -292,8 +297,8 @@
         function getRequest() {
             // Отправляем GET запрос
             const data = document.getElementById('getterInput').value;
-            console.log(`/add_request?data="${data}"`)
-            fetch(`/add_request?data=${data}`)
+            console.log(`/get_request?data="${data}"`)
+            fetch(`/get_request?data=${data}`)
             .then(response => response.json())
             .then(data => {
                 console.log('GET запрос выполнен успешно:', data);

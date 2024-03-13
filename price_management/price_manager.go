@@ -26,6 +26,30 @@ func NewPriceManagementService(db *sql.DB, filename string) (*PriceManager, erro
 	return pm, nil
 }
 
+func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
+	tableName := request.DataBaseName
+	find_matrx := false
+	matrix_id := uint64(0)
+	mx_id := uint64(0)
+	for i, j := range p.DataBaseById {
+		mx_id = max(mx_id, i)
+		if j == tableName {
+			matrix_id = i
+			find_matrx = true
+			break
+		}
+	}
+	if !find_matrx {
+		matrix_id = mx_id + 1
+		p.DataBaseById[matrix_id] = p.DataBaseById[1]
+		p.DataBaseById[1] = tableName
+	} else {
+		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
+	}
+	p.loadDB()
+	return (tableName != ""), nil
+}
+
 // SetPrice устанавливает цену для указанных местоположения и микрокатегории
 
 // SetPrice в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
@@ -71,7 +95,9 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		p.DataBaseById[matrix_id] = request.DataBaseName
 		err := p.loadDB()
 		if err != nil {
-			logrus.Fatal(err)
+			logrus.Debug(err)
+			p.loadDB()
+			return 0, nil
 		}
 	}
 	return matrix_id, nil

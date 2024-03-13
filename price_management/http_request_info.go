@@ -6,6 +6,22 @@ import (
 	"strconv"
 )
 
+type HttpChangeStorage struct {
+	DataBaseName string
+}
+
+func NewChangeStorage(r *http.Request) (HttpChangeStorage, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_name")
+	if dbIDS == "" {
+		return HttpChangeStorage{}, errors.New("data_base_name is required")
+	}
+
+	return HttpChangeStorage{
+		DataBaseName: dbIDS,
+	}, nil
+}
+
 type HttpGetRequestInfo struct {
 	LocationID, MicrocategoryID, DataBaseID uint64
 }
