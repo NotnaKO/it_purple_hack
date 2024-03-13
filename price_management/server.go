@@ -142,7 +142,7 @@ func (h *Handler) GetIdByMatrix(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Matrix string `json:"id_matrix"`
+		Matrix uint64 `json:"id_matrix"`
 	}{
 		Matrix: id,
 	}
