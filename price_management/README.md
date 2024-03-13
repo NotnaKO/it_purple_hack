@@ -27,7 +27,7 @@ go build
 
 ## Примеры запросов
 ### Set price
-**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
+**Запрос присвоение цены в таблицу: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
 curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
 ```
@@ -39,13 +39,6 @@ curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&d
 curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET 'http://localhost:8080/get_price?location_id=1&microcategory_id=1&data_base_id=1'
 ```
 Ответ: JSON{price:"< price >"}
-
-### Set price
-**Запрос получения цены из таблицы: обязательные параметры: location_id,microcategory_id, data_base_id**
-```bash
-curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
-```
-Ответ: успешный запрос/нет(с возвратом ошибки возвращения к таблице)
 
 ### Get matrix
 **Запрос получения имени таблицы по ее id: обязательные параметры: data_base_id**
