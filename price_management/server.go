@@ -128,10 +128,10 @@ var configPath = flag.String("config_path", "",
 var config Config
 var NoConfig = errors.New("you should set config file. Use --help to information")
 
-func ParseTableIdJson(filename string) (map[uint64]string, error) {
+func (p *PriceManager) ParseTableIdJson(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -144,13 +144,13 @@ func ParseTableIdJson(filename string) (map[uint64]string, error) {
 	decoder := json.NewDecoder(file)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&tables); err != nil {
-		return nil, err
+		return err
 	}
-	DataBaseById := make(map[uint64]string)
+	p.DataBaseById = make(map[uint64]string)
 	for _, table := range tables {
-		DataBaseById[table.Id] = table.Name
+		p.DataBaseById[table.Id] = table.Name
 	}
-	return DataBaseById, nil
+	return nil
 }
 
 func main() {
@@ -186,6 +186,15 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	defer func(priceManager *PriceManager) {
+		err := priceManager.dumpTables()
+		if err != nil {
+			logrus.Error("Couldn't dump tables in defer, because get error: ", err)
+		}
+	}(priceManager)
+
+	tickChannel := time.Tick(time.Minute)
+	go priceManager.waitTimer(tickChannel)
 	// Now we are ready to start
 
 	logger := logrus.New()
@@ -199,7 +208,7 @@ func main() {
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := strconv.Itoa(int(config.ServerPort))
-		fmt.Printf("Price Management Service is listening on port %s...\n", port)
+		logrus.Infof("Price Management Service is listening on port %s...\n", port)
 		err := http.ListenAndServe(":"+port, nil)
 		if err != nil {
 			logger.Fatal(err)

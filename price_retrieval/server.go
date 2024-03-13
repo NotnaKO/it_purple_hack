@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,7 +24,7 @@ func NewHandler() *Handler {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout)
-	logger.SetLevel(logrus.DebugLevel) // Set log level to info
+	logger.SetLevel(logrus.DebugLevel) // Set log level to debug
 
 	return &Handler{
 		logger: logger,
@@ -151,7 +150,7 @@ func main() {
 
 	go func() {
 		port := strconv.Itoa(int(config.ServerPort))
-		fmt.Printf("Price Retrieval Service is listening on port %s...\n", port)
+		logrus.Infof("Price Retrieval Service is listening on port %s...\n", port)
 		logrus.Fatal(http.ListenAndServe(":"+port, nil))
 	}()
 
