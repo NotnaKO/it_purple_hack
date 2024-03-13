@@ -124,9 +124,9 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 	if priceStr == "" {
 		return HttpSetRequestInfo{}, errors.New("price is required")
 	}
-	priceInFloat, err := strconv.ParseFloat(priceStr, 64)
+	price, err := strconv.ParseUint(priceStr, 10, 64)
 	if err != nil {
-		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
+		return HttpSetRequestInfo{}, errors.New("invalid price")
 	}
 
 	dbIDS := r.URL.Query().Get("data_base_id")
@@ -135,10 +135,8 @@ func NewSetRequest(r *http.Request) (HttpSetRequestInfo, error) {
 	}
 	dbID, err := strconv.ParseUint(dbIDS, 10, 64)
 	if err != nil {
-		return HttpSetRequestInfo{}, errors.New("invalid microcategory_id")
+		return HttpSetRequestInfo{}, errors.New("invalid data_base_id")
 	}
-
-	price := uint64(priceInFloat * 100) // convert float
 
 	return HttpSetRequestInfo{
 		LocationID:      locationID,
