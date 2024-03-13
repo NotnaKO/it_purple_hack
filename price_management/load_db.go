@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+
+	"github.com/sirupsen/logrus"
 )
 
 func (p *PriceManager) loadDB() error {
