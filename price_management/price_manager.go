@@ -95,6 +95,7 @@ func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uin
 		p.DataBaseById[matrix_id] = request.DataBaseName
 		err := p.loadDB()
 		if err != nil {
+			delete(p.DataBaseById, matrix_id)
 			logrus.Debug(err)
 			p.loadDB()
 			return 0, nil
