@@ -46,10 +46,10 @@ func (p *PriceManager) ChangeStorage(request *HttpChangeStorage) (bool, error) {
 		matrix_id = mx_id + 1
 		p.DataBaseById[matrix_id] = p.DataBaseById[1]
 		p.DataBaseById[1] = tableName
+		p.createTable(tableName)
 	} else {
 		p.DataBaseById[matrix_id], p.DataBaseById[1] = p.DataBaseById[1], p.DataBaseById[matrix_id]
 	}
-	p.createTable(tableName)
 	p.mx.Unlock()
 	return (tableName != ""), nil
 }
