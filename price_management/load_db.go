@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -39,15 +40,19 @@ func (p *PriceManager) loadDB() error {
 		return answer
 	}(os.Getwd()))
 
-	err = exec.Command("bash", "create_tables.sh").Run()
+	cmd := exec.Command("bash", "create_tables.sh")
+	var out strings.Builder
+	cmd.Stderr = &out
+	err = cmd.Run()
 	if err != nil {
+		logrus.Error(out.String())
 		return err
 	}
 	logrus.Debug("Master tables created. Now go to partitions.")
 
 	for _, tableName := range p.DataBaseById {
 		err := p.createTable(tableName)
-		if (err != nil) {
+		if err != nil {
 			return err
 		}
 	}

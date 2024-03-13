@@ -310,16 +310,19 @@ func main() {
 			logrus.Fatal(err)
 		}
 	}(db)
+	logrus.Debug("Connect successful")
 
 	priceManager, err := NewPriceManagementService(db, config.DbPathName)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	logrus.Debug("New price manager created")
 
 	err = priceManager.loadDB()
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	logrus.Debug("Db load successfully")
 
 	defer func(priceManager *PriceManager) {
 		err := priceManager.dumpTables()

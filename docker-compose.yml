@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16.2
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: postgres
+    volumes:
+      - /var/lib/postgres
+    ports:
+      - "5342:5342"
+
+  management:
+    build: price_management
+    volumes:
+      - ./config/:/config
+      - ./data/:/data
+      - ./docker/data_base_generation/:/data_base_generation
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  retrieval:
+    build: price_retrieval
+    volumes:
+      - ./config/:/config
+      - ./data/:/data
+    ports:
+      - "7020:7020"
+    depends_on:
+      - db
+      - management
