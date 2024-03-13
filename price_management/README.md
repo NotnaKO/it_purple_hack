@@ -33,10 +33,10 @@ go build
 ```
 
 ## Примеры запросов
-### Set price
+### Set price - цена перадается в копейках, типа uint64
 **Запрос присвоение цены в таблицу: обязательные параметры: location_id,microcategory_id, data_base_id**
 ```bash
-curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=12.99"
+curl -X POST "http://localhost:8080/set_price?location_id=1&microcategory_id=1&data_base_id=1&price=1299"
 ```
 Ответ: успешный запрос/нет(с возвратом ошибки возвращения к таблице)
 
