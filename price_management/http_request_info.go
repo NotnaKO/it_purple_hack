@@ -66,7 +66,7 @@ func NewGetMatrixByIdRequest(r *http.Request) (HttpGetMatrixByIdRequestInfo, err
 }
 
 type HttpGetIdByMatrixRequestInfo struct {
-	DataBaseID string
+	DataBaseName string
 }
 
 func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, error) {
@@ -77,7 +77,7 @@ func NewGetIdByMatrixRequest(r *http.Request) (HttpGetIdByMatrixRequestInfo, err
 	}
 
 	return HttpGetIdByMatrixRequestInfo{
-		DataBaseID: dbIDS,
+		DataBaseName: dbIDS,
 	}, nil
 }
 

@@ -54,18 +54,21 @@ func (p *PriceManager) GetMatrixById(request *HttpGetMatrixByIdRequestInfo) (str
 	return tableName, nil
 }
 
-func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (int, error) {
+func (p *PriceManager) GetIdByMatrix(request *HttpGetIdByMatrixRequestInfo) (uint64, error) {
 	find_matrx := false
-	matrix_id := 0
+	matrix_id := uint64(0)
+	mx_id := uint64(0)
 	for i, j := range p.DataBaseById {
-		if j == request.DataBaseID {
-			matrix_id = int(i)
+		mx_id = max(mx_id, i)
+		if j == request.DataBaseName {
+			matrix_id = i
 			find_matrx = true
 			break
 		}
 	}
 	if !find_matrx {
-		return -1, errors.New("no exist table with that data_base_name")
+		matrix_id = mx_id + 1	
+		p.DataBaseById[matrix_id] = request.DataBaseName
 	}
 	return matrix_id, nil
 }

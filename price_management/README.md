@@ -52,7 +52,7 @@ curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
 Ответ: JSON {matrix_name: "< name table >"|"table not found"}
 
 ### Get id
-**Запрос получения id таблицы по ее имени: обязательные параметры: data_base_name**
+**Запрос присвоения/получения(если была) id таблицы по ее имени: обязательные параметры: data_base_name**
 ```bash
 curl -X POST "http://localhost:8080/get_id?data_base_name=1"
 ```
