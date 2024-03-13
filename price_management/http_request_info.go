@@ -45,6 +45,26 @@ func NewGetRequest(r *http.Request) (HttpGetRequestInfo, error) {
 	}, nil
 }
 
+type HttpGetMatrixByIdRequestInfo struct {
+	DataBaseID uint64
+}
+
+func NewGetMatrixByIdRequest(r *http.Request) (HttpGetMatrixByIdRequestInfo, error) {
+
+	dbIDS := r.URL.Query().Get("data_base_id")
+	if dbIDS == "" {
+		return HttpGetMatrixByIdRequestInfo{}, errors.New("data_base_id is required")
+	}
+	dbID, err := strconv.ParseUint(dbIDS, 10, 64)
+	if err != nil {
+		return HttpGetMatrixByIdRequestInfo{}, errors.New("invalid microcategory_id")
+	}
+
+	return HttpGetMatrixByIdRequestInfo{
+		DataBaseID: dbID,
+	}, nil
+}
+
 type HttpSetRequestInfo struct {
 	LocationID, MicroCategoryID, Price, DataBaseID uint64
 }

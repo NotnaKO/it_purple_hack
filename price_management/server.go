@@ -90,6 +90,40 @@ func (h *Handler) SetPrice(w http.ResponseWriter, r *http.Request) {
 	h.logRequest(r, startTime)
 }
 
+func (h *Handler) GetMatrixById(w http.ResponseWriter, r *http.Request) {
+	startTime := time.Now()
+
+	getRequest, err := NewGetMatrixByIdRequest(r)
+	if err != nil {
+		h.logRequestError(r, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	matrix, err := h.priceManager.GetMatrixById(&getRequest)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Matrix string `json:"matrix_name"`
+	}{
+		Matrix: matrix,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		h.logServerError(r, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	h.logRequest(r, startTime)
+}
+
 func (h *Handler) logRequest(r *http.Request, startTime time.Time) {
 	duration := time.Since(startTime)
 	h.logger.WithFields(logrus.Fields{
@@ -196,6 +230,7 @@ func main() {
 	handler := NewHandler(priceManager, logger)
 	http.HandleFunc("/get_price", handler.GetPrice)
 	http.HandleFunc("/set_price", handler.SetPrice)
+	http.HandleFunc("/get_matrix", handler.GetMatrixById)
 	// TODO kubernetes. right now leave only one port
 	go func() {
 		port := strconv.Itoa(int(config.ServerPort))

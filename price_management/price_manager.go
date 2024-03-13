@@ -45,6 +45,16 @@ func (p *PriceManager) SetPrice(request *HttpSetRequestInfo) error {
 	return err
 }
 
+func (p *PriceManager) GetMatrixById(request *HttpGetMatrixByIdRequestInfo) (string, error) {
+	// for debug table id reguest
+	//  fmt.Printf("SELECT price FROM %s WHERE location_id=$1 AND microcategory_id=$2", p.DataBaseById[request.DataBaseID])
+	tableName, ok := p.DataBaseById[request.DataBaseID]
+	if !ok {
+		return "", errors.New("no exist table with that data_base_id")
+	}
+	return tableName, nil
+}
+
 // GetPrice возвращает цену для указанных местоположения и микрокатегории
 // в поле DataBaseId возвращается id таблицы из json таблиц(по умолчанию 1)
 func (p *PriceManager) GetPrice(request *HttpGetRequestInfo) (uint64, error) {
