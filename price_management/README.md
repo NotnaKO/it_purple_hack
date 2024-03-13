@@ -53,6 +53,7 @@ curl -X POST "http://localhost:8080/get_matrix?data_base_id=1"
 
 ### Get id
 **Запрос присвоения/получения(если была) id таблицы по ее имени: обязательные параметры: data_base_name**
+**Эта ручка создана для добавления в сервис таблиц, созданных аналитиками**
 ```bash
 curl -X POST "http://localhost:8080/get_id?data_base_name=1"
 ```
