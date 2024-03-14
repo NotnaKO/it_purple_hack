@@ -6,7 +6,7 @@
 `Frontend` - _HTML_/_CSS_/_JavaScript_
 
 `Test` - _Python_
-
+Testing Host: 185.178.44.190: (подключение ssh anton@185.178.44.190, password: 1234)
 # Содержание
 - [Платформа ценообразования Авито](#платформа-ценообразования-авито)
   - [Решение команды Calculus Enjoyers](#решение-команды-calculus-enjoyers)
